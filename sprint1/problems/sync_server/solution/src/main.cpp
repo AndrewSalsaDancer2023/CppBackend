@@ -58,19 +58,6 @@ std::optional<StringRequest> ReadRequest(tcp::socket& socket, beast::flat_buffer
     return req;
 } 
 
-void DumpRequest(const StringRequest& req) {
-    std::string_view trgt = req.target();
-    trgt.remove_prefix(1);
-    std::cout << "*******************************************************" << std::endl;
-    std::cout << req.method_string() << ':' << trgt << ':' << std::endl;
-    std::cout << "*******************************************************" << std::endl;
-    // Выводим заголовки запроса
-    for (const auto& header : req) {
-        std::cout << "  "sv << header.name_string() << ": "sv << header.value() << std::endl;
-    }
-    
-} 
-
 StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
                                   bool keep_alive, const std::map<http::field, std::string_view>& addition_headers = {},
                                   std::string_view content_type = ContentType::TEXT_HTML) {
@@ -125,8 +112,6 @@ void HandleConnection(tcp::socket& socket, RequestHandler&& handle_request) {
 
         while (auto request = ReadRequest(socket, buffer)) {
 
-//            DumpRequest(*request);
-
 	    StringResponse response = handle_request(*std::move(request));
             // Отправляем ответ сервера клиенту
             http::write(socket, response);
@@ -145,9 +130,7 @@ void HandleConnection(tcp::socket& socket, RequestHandler&& handle_request) {
 }
 
 
-int main() {
-    // Выведите строчку "Server has started...", когда сервер будет готов принимать подключения
-    
+int main() {  
     net::io_context ioc;
 
     const auto address = net::ip::make_address("0.0.0.0");
@@ -159,13 +142,6 @@ int main() {
         tcp::socket socket(ioc);
         acceptor.accept(socket);
         HandleConnection(socket, HandleRequest);
-/*         std::thread t(
-              [](tcp::socket socket) {
-                HandleConnection(socket, HandleRequest);
-            }, std::move(socket));
-  
-        t.detach();
-  */      
     }
     
     return 0;
