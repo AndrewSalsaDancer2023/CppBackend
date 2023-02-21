@@ -8,11 +8,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <iostream>
-#include <thread>
 #include <optional>
-
 #include <boost/asio/write.hpp>
-
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/verb.hpp>
 #include <map>
