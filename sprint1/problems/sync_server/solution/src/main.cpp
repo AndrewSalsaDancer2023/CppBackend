@@ -91,7 +91,8 @@ StringResponse HandleRequest(StringRequest&& req) {
    };
    
    const auto invalid_method = [&req](){
-	   return MakeStringResponse(http::status::method_not_allowed, "Invalid method"sv, req.version(), 			req.keep_alive(), {{http::field::allow, AllowType::GET_HEAD}});
+	   return MakeStringResponse(http::status::method_not_allowed, "Invalid method"sv, req.version(),
+	   			      req.keep_alive(), {{http::field::allow, AllowType::GET_HEAD}});
    };
 
    std::map<boost::beast::http::verb, std::function<StringResponse()>>
