@@ -16,7 +16,8 @@ using tcp = net::ip::tcp;
 namespace beast = boost::beast;
 namespace http = beast::http;
 
-using namespace std::literals;
+
+  void ReportError(beast::error_code ec, std::string_view what);
 
 class SessionBase {
     // Напишите недостающий код, используя информацию из урока
@@ -29,9 +30,6 @@ protected:
     explicit SessionBase(tcp::socket&& socket)
         : stream_(std::move(socket)) {
     }    
-   void ReportError(beast::error_code ec, std::string_view what) {
-    std::cerr << what << ": "sv << ec.message() << std::endl;
-}
 
    template <typename Body, typename Fields>
     void Write(http::response<Body, Fields>&& response) {
@@ -44,54 +42,16 @@ protected:
                               self->OnWrite(safe_response->need_eof(), ec, bytes_written);
                           });
     }
-   
+
 protected:
     using HttpRequest = http::request<http::string_body>;
 
     ~SessionBase() = default;
 private:
-    void Read() {
-        using namespace std::literals;
-        // Очищаем запрос от прежнего значения (метод Read может быть вызван несколько раз)
-        request_ = {};
-        stream_.expires_after(30s);
-        // Считываем request_ из stream_, используя buffer_ для хранения считанных данных
-        http::async_read(stream_, buffer_, request_,
-                         // По окончании операции будет вызван метод OnRead
-                         beast::bind_front_handler(&SessionBase::OnRead, GetSharedThis()));
-    }
-    
-    void OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read) {
-        using namespace std::literals;
-        if (ec == http::error::end_of_stream) {
-            // Нормальная ситуация - клиент закрыл соединение
-            return Close();
-        }
-        if (ec) {
-            return ReportError(ec, "read"sv);
-        }
-        HandleRequest(std::move(request_));
-    }
-
-    void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written) {
-        if (ec) {
-            return ReportError(ec, "write"sv);
-        }
-
-        if (close) {
-            // Семантика ответа требует закрыть соединение
-            return Close();
-        }
-
-        // Считываем следующий запрос
-        Read();
-    }
-
-    void Close() {
-        beast::error_code ec;
-        stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
-    }
-
+    void Read();
+    void OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read);
+    void OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written);
+    void Close();
     // Обработку запроса делегируем подклассу
     virtual void HandleRequest(HttpRequest&& request) = 0;
     
@@ -175,10 +135,6 @@ private:
             // std::bind(&Listener::OnAccept, this->shared_from_this(), ph::_1, ph::_2)
             beast::bind_front_handler(&Listener::OnAccept, this->shared_from_this()));
     }
-
-   void ReportError(beast::error_code ec, std::string_view what) {
-    std::cerr << what << ": "sv << ec.message() << std::endl;
-}
 
     // Метод socket::async_accept создаст сокет и передаст его передан в OnAccept
     void OnAccept(beast::error_code ec, tcp::socket socket) {
