@@ -35,51 +35,45 @@ public:
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
         // Обработать запрос request и отправить ответ, используя send
-        // /api/v1/maps or /api/v1/maps/{id-карты} example /api/v1/maps/map1
-//        std::cout << "Getting request" << std::endl;
 	if( req.method() != http::verb::get)
-	return;
+            return;
 	//StringResponse tempresp;
-//	std::cout << "Target:" << req.target() << std::endl;
-
 	std::string_view parameters = req.target();
 	std::string_view apiPrefix = "/api/";
 	std::string_view fullPrefix = "/api/v1/maps";
 
 	if(parameters.starts_with(apiPrefix) && !parameters.starts_with(fullPrefix))
 	{
-		auto resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeBadRequestResponce(),	 			            		        req.version(), req.keep_alive());
-		send(std::move(resp));
+            auto resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeBadRequestResponce(),	 			            		        req.version(), req.keep_alive());
+            send(std::move(resp));
 	}
 	else
 	{
-		if(parameters.starts_with(fullPrefix))
-		{
-			parameters.remove_prefix(fullPrefix.size());
-			if(parameters.empty())
-			   {
-		
-			   	auto resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), 								req.version(), req.keep_alive());
-			   	send(std::move(resp));
-			   }
-			else
- 		   	{
-	 		   	parameters.remove_prefix(1);
- 			   	const auto& responce = json_serializer::GetMapContentResponce(game_, {parameters.begin(), parameters.end()});
- 			   	if(!responce.empty())
- 			   	{
- 			   	   auto resp = MakeStringResponse(http::status::ok, responce, 								req.version(), req.keep_alive());
-			   	   send(std::move(resp));
-	
-		 		}
-		 		else
-		 		{
-		 		   auto resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(),	 								   req.version(), req.keep_alive());
-			   	   send(std::move(resp));
- 			   	}
- 		   	}
-		}
-	}
+            if(parameters.starts_with(fullPrefix))
+            {
+                parameters.remove_prefix(fullPrefix.size());
+                if(parameters.empty())
+                {
+                    auto resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), 								req.version(), req.keep_alive());
+                    send(std::move(resp));
+                }
+                else
+                {
+                    parameters.remove_prefix(1);
+                    const auto& responce = json_serializer::GetMapContentResponce(game_, {parameters.begin(), parameters.end()});
+                    if(!responce.empty())
+                    {
+                        auto resp = MakeStringResponse(http::status::ok, responce, 								req.version(), req.keep_alive());
+                        send(std::move(resp));
+                    }
+                    else
+                    {
+                        auto resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(),	 								   req.version(), req.keep_alive());
+                        send(std::move(resp));
+                    }
+                }
+            }
+        }
 		
     }
     

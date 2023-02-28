@@ -28,8 +28,8 @@ namespace json_serializer {
 	return	MakeErrorResponce("badRequest", "Bad request");   
    }
 
-void SerializeOffices(const model::Map& map ,json::object& root)
-{
+    void SerializeOffices(const model::Map& map ,json::object& root)
+    {
 	json::array offices_ar;
 	for(const auto& office : map.GetOffices())
 	{
@@ -44,10 +44,10 @@ void SerializeOffices(const model::Map& map ,json::object& root)
 		offices_ar.emplace_back(office_obj);
 	}
 	root["offices"] = offices_ar;
-}
+    }
 
-void SerializeBuildings(const model::Map& map ,json::object& root)
-{
+    void SerializeBuildings(const model::Map& map ,json::object& root)
+    {
 	json::array buildings_ar;
 	for(const auto& building : map.GetBuildings())
 	{
@@ -63,56 +63,52 @@ void SerializeBuildings(const model::Map& map ,json::object& root)
 		buildings_ar.emplace_back(building_obj);
 	}
 	root["buildings"] = buildings_ar;
-}
+    }
 
-void SerializeRoads(const model::Map& map ,json::object& root)
-{
+    void SerializeRoads(const model::Map& map ,json::object& root)
+    {
 	json::array roads_ar;
 	for(const auto& road : map.GetRoads())
 	{
-		json::object road_obj;
+            json::object road_obj;
 		
-		model::Point start = road.GetStart();
-		model::Point end = road.GetEnd();
+            model::Point start = road.GetStart();
+            model::Point end = road.GetEnd();
 		
-		road_obj["x0"] = start.x;
-		road_obj["y0"] = start.y;
+            road_obj["x0"] = start.x;
+            road_obj["y0"] = start.y;
 		
-		if(road.IsHorizontal())
-			road_obj["x1"] = end.x;
-		else
-			road_obj["y1"] = end.y;
+            if(road.IsHorizontal())
+                road_obj["x1"] = end.x;
+            else
+                road_obj["y1"] = end.y;
 
-		roads_ar.emplace_back(road_obj);
+            roads_ar.emplace_back(road_obj);
 	}
 	root["roads"] = roads_ar;
-}
-
-std::string GetMapListResponce(const model::Game& game)
-{
-    json::array map_ar;
-//    json::object other_obj;
-    for( const auto& map: game.GetMaps())
-    {
-	json::object map_obj;
-	
-	map_obj[ "id" ] = *map.GetId();  
-        map_obj[ "name" ] = map.GetName(); 
-        map_ar.emplace_back(map_obj); 
     }
-    
-  //  other_obj["maps"] = map_ar;
-    
- //   return json::serialize(other_obj);
-      return json::serialize(map_ar);
-}
 
-std::string GetMapContentResponce(const model::Game& game, const std::string& map_id)
-{
+    std::string GetMapListResponce(const model::Game& game)
+    {
+        json::array map_ar;
+        for( const auto& map: game.GetMaps())
+        {
+            json::object map_obj;
+	
+            map_obj[ "id" ] = *map.GetId();
+            map_obj[ "name" ] = map.GetName();
+            map_ar.emplace_back(map_obj);
+        }
+  
+        return json::serialize(map_ar);
+    }
+
+    std::string GetMapContentResponce(const model::Game& game, const std::string& map_id)
+    {
 	const model::Map* mapFound = game.FindMap(model::Map::Id(map_id));
 
 	if(!mapFound)
-       	return ("");
+            return ("");
 
 	 json::object root;
 
@@ -124,6 +120,6 @@ std::string GetMapContentResponce(const model::Game& game, const std::string& ma
  	SerializeOffices(*mapFound, root);
  	
  	return json::serialize(root);
-}
+    }
 
 }  // namespace json_serializer

@@ -3,7 +3,7 @@
 namespace http_handler {
 
  StringResponse RequestHandler::MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
-                                  bool keep_alive, std::string_view content_type)
+                                                   bool keep_alive, std::string_view content_type)
  {
     StringResponse response(status, http_version);
     response.set(http::field::content_type, content_type);

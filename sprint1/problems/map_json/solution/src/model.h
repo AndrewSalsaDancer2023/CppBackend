@@ -82,8 +82,7 @@ private:
 class Building {
 public:
     explicit Building(Rectangle bounds) noexcept
-        : bounds_{bounds} {
-    }
+        : bounds_{bounds} {}
 
     const Rectangle& GetBounds() const noexcept {
         return bounds_;

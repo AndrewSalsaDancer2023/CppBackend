@@ -15,8 +15,7 @@ using tcp = net::ip::tcp;
 namespace beast = boost::beast;
 namespace http = beast::http;
 
-// Разместите здесь реализацию http-сервера, взяв её из задания по разработке асинхронного сервера
-  void ReportError(beast::error_code ec, std::string_view what);
+    void ReportError(beast::error_code ec, std::string_view what);
 
 class SessionBase {
     // Напишите недостающий код, используя информацию из урока
@@ -64,8 +63,6 @@ private:
 
 template <typename RequestHandler>
 class Session : public SessionBase, public std::enable_shared_from_this<Session<RequestHandler>> {
-	// Напишите недостающий код, используя информацию из урока
-	
 public:
     template <typename Handler>
     Session(tcp::socket&& socket, Handler&& request_handler)
