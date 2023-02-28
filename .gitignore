@@ -719,3 +719,7 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/qtcreator,clion,cmake,visualstudiocode,visualstudio,eclipse,vim,emacs,kate
+/.venv/lib/python3.9/site-packages/Flask-2.1.2.dist-info/INSTALLER
+/.venv/lib/python3.9/
+/.venv/lib64
+/.venv/pyvenv.cfg
