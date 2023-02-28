@@ -38,8 +38,8 @@ void SerializeOffices(const model::Map& map ,json::object& root)
 		office_obj["id"] = *office.GetId();
 		office_obj["x"] = office.GetPosition().x;
 		office_obj["y"] = office.GetPosition().y;
-		office_obj["w"] = office.GetOffset().dx;
-		office_obj["h"] = office.GetOffset().dy;
+		office_obj["offsetX"] = office.GetOffset().dx;
+		office_obj["offsetY"] = office.GetOffset().dy;
 		
 		offices_ar.emplace_back(office_obj);
 	}
