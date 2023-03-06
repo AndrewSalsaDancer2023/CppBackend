@@ -54,7 +54,7 @@ void LogInfo() {
 template <typename A, typename... B>
 void LogInfo(A num, B... args) {
 //	std::cout << num << " ";
-	log_file_ << num << " ";
+	log_file_ << num;
 	LogInfo(args...);
 }
 
