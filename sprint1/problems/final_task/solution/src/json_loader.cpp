@@ -91,6 +91,8 @@ namespace json_loader {
 
     void ParseMaps(const std::filesystem::path& json_path, model::Game& game)
     {
+    	if(!std::filesystem::exists(json_path))
+		throw	std::filesystem::filesystem_error("File not exists", std::error_code());
         std::ifstream input(json_path);
         std::stringstream sstr;
 

@@ -12,7 +12,6 @@ namespace http_server {
     }
 
     void SessionBase::Read() {
-        using namespace std::literals;
         // Очищаем запрос от прежнего значения (метод Read может быть вызван несколько раз)
         request_ = {};
         stream_.expires_after(30s);
@@ -24,7 +23,7 @@ namespace http_server {
 
 
     void SessionBase::OnRead(beast::error_code ec, [[maybe_unused]] std::size_t bytes_read) {
-        using namespace std::literals;
+
         if (ec == http::error::end_of_stream) {
             // Нормальная ситуация - клиент закрыл соединение
             return Close();
@@ -36,7 +35,6 @@ namespace http_server {
     }
 
     void SessionBase::OnWrite(bool close, beast::error_code ec, [[maybe_unused]] std::size_t bytes_written) {
-	using namespace std::literals;
         if (ec) {
             return ReportError(ec, "write"sv);
         }
