@@ -62,7 +62,7 @@ template <typename A, typename... B>
 void Log(A num, B... args) {
 	std::lock_guard lg(m_);
 	log_file_.open("/var/log/" + GetFileTimeStamp(), std::ios::app);
-	
+	log_file_ << GetTimeStamp() << ": ";
 	LogInfo(num, args...);
 	
 	log_file_.close();
