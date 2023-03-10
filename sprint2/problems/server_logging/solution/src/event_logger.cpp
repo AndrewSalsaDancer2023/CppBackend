@@ -36,16 +36,7 @@ namespace event_logger {
 
 void MyFormatter(logging::record_view const& rec, logging::formatting_ostream& strm) {
 
- //   strm << rec[line_id] << "File : " << rec[file] << "Line:" << rec[line] <<": ";
-
-    // чтобы поставить логеры в равные условия, уберём всё лишнее
-//    auto ts = rec[timestamp];
-//    strm << to_iso_extended_string(*ts) << ": ";
-
-//    json::value vl = rec[additional_data];
-    // выводим само сообщение
-   // strm << rec[expr::smessage];
-   strm << rec[additional_data];
+   strm << rec[additional_data] << std::endl;
 }
 
 std::string GetLogTime()
@@ -123,19 +114,5 @@ void LogServerRespondSend(int response_time, unsigned code, const std::string& c
   
   BOOST_LOG_TRIVIAL(info) << logging::add_value(additional_data, resp_object);
 }
-
-/*
-message — строка response sent
-data — объект с полями:
-response_time — время формирования ответа в миллисекундах (целое число).
-code — статус-код ответа, например, 200 (http::response<T>::result_int()).
-content_type — строка или null, если заголовок в ответе отсутствует.
-
-
-BOOST_LOG_TRIVIAL(trace) << "Сообщение уровня trace"sv; 
-BOOST_LOG_TRIVIAL(debug) << "Сообщение уровня debug"sv;
-BOOST_LOG_TRIVIAL(info) << "Сообщение уровня info"sv;
-*/
-
 
 }
