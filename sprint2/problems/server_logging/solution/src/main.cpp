@@ -75,7 +75,6 @@ int main(int argc, const char* argv[]) {
             ioc.run();
         });
     } catch (const std::exception& ex) {
-        std::cerr << ex.what() << std::endl;
         event_logger::LogServerEnd("server exited", EXIT_FAILURE, ex.what());
         return EXIT_FAILURE;
     }
