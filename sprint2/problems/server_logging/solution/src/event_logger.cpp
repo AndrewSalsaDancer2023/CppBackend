@@ -59,7 +59,7 @@ void LogStartServer(const std::string& address, unsigned int port, const std::st
 
   json::object data_object;
   data_object["address"] = address;
-  data_object["port"] = std::to_string(port);
+  data_object["port"] = port;
   
   resp_object["data"] = data_object;
       	
