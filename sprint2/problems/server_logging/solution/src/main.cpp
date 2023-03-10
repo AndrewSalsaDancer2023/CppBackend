@@ -68,7 +68,7 @@ int main(int argc, const char* argv[]) {
 	event_logger::InitLogger();
         // Эта надпись сообщает тестам о том, что сервер запущен и готов обрабатывать запросы
         //std::cout << "Server has started..."sv << std::endl;
-        event_logger::LogStartServer(address.to_string(), port, "Server has started...");
+        event_logger::LogStartServer(address.to_string(), port, "server started");
 
         // 6. Запускаем обработку асинхронных операций
         RunWorkers(std::max(1u, num_threads), [&ioc] {
