@@ -73,7 +73,7 @@ void LogServerEnd(const std::string& message, int code, const std::string& excep
   resp_object["timestamp"] = GetLogTime();
 
   json::object data_object;
-  data_object["code"] = std::to_string(code);
+  data_object["code"] = code;
   if(!exception_descr.empty())
 	data_object["exception"] = exception_descr;
   
@@ -106,8 +106,8 @@ void LogServerRespondSend(int response_time, unsigned code, const std::string& c
   resp_object["timestamp"] = GetLogTime();
 
   json::object data_object;
-  data_object["response_time"] = std::to_string(response_time);
-  data_object["code"] = std::to_string(code);
+  data_object["response_time"] = response_time;
+  data_object["code"] = code;
   data_object["content_type"] = content_type;
       	
   resp_object["data"] = data_object;
