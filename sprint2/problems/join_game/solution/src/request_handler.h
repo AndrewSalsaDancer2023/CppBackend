@@ -97,6 +97,51 @@ public:
     	}
     }
 
+    StringResponse HandleGetPlayersRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
+    {
+    	//    			std::cout << "Request get players:" <<std::endl;
+		if(method == http::verb::get)
+		{
+			std::string auth_token = GetAuthToken(auth_type);
+    	//    				std::cout << "authToken:" << auth_token << std::endl;
+			if(auth_token.empty())
+			{
+    	//    					std::cout << "authToken is empty" << std::endl;
+				auto resp = MakeStringResponse(http::status::unauthorized,
+    					    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
+            																		  {"message", "Authorization header is missing"}}),
+																					  http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+
+				return resp;
+			}
+			if(!game_.HasSessionWithAuthInfo(auth_token))
+			{
+    	//    					std::cout << "No player win auth!" << std::endl;
+    	    	auto resp = MakeStringResponse(http::status::unauthorized,
+    	    	    					       json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
+    	    																		{"message", "Player token has not been found"}}),
+																					http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+    	    	return resp;
+    	    }
+			else
+			{
+    	//    					std::cout << "FindAllPlayersForAuthInfo:" << auth_token << std::endl;
+				auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
+				auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+				return resp;
+    	    }
+    	 }
+   // 	 else
+//    	    if((req.method() != http::verb::get) && (req.method() != http::verb::head))
+//    	    {
+   		    	auto resp = MakeStringResponse(http::status::method_not_allowed,
+   	    		    	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
+   	    		    																  {"message", "Invalid method"}}),
+																					  http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache", HeaderType::ALLOW_HEADERS);
+   		    	return resp;
+  //  	    }
+    }
+
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
     	if(!req.target().compare("/api/v1/game/join"sv))
@@ -119,49 +164,79 @@ public:
     	else
     		if(!req.target().compare("/api/v1/game/players"sv))
     		{
-//    			std::cout << "Request get players:" <<std::endl;
-    			 auto auth_type = req[http::field::authorization];
+    			auto resp = HandleGetPlayersRequest(req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    			send(std::move(resp));
+    		}
+    	/////////////////////////////////////////////////////////////
+    		else
+    		{
+    			if( req.method() != http::verb::get)
+    				return;
+    			std::string_view parameters = req.target();
+    		 	std::string_view apiPrefix = "/api/";
+    			std::string_view fullPrefix = "/api/v1/maps";
 
-    			if(req.method() == http::verb::get)
+    			const std::string uri = {parameters.begin(), parameters.end()};
+    		        event_logger::LogServerRequestReceived("127.0.0.1", uri, "GET");
+
+    			StringResponse resp;
+    			if(parameters.starts_with(apiPrefix) && !parameters.starts_with(fullPrefix))
     			{
-    				std::string auth_token = GetAuthToken(auth_type);
-//    				std::cout << "authToken:" << auth_token << std::endl;
-    				if(auth_token.empty())
-    				{
-//    					std::cout << "authToken is empty" << std::endl;
-    					auto resp = MakeStringResponse(http::status::unauthorized,
-    					    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
-    																				  {"message", "Authorization header is missing"}}),
-    																				  req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, "no-cache");
-    					send(std::move(resp));
-    					return;
-    				}
-    				if(!game_.HasSessionWithAuthInfo(auth_token))
-    				{
-//    					std::cout << "No player win auth!" << std::endl;
-    					auto resp = MakeStringResponse(http::status::unauthorized,
-    					    					       json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
-													   {"message", "Player token has not been found"}}),
-													   req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, "no-cache");
-    					send(std::move(resp));
-    				}
-    				else
-    				{
-//    					std::cout << "FindAllPlayersForAuthInfo:" << auth_token << std::endl;
-    					auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
-    					auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, "no-cache");
-    					send(std::move(resp));
-    				}
+    		            resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeBadRequestResponce(),	 			      		        req.version(), req.keep_alive());
+    		            send(std::move(resp));
     			}
     			else
-    		    if((req.method() != http::verb::get) && (req.method() != http::verb::head))
     			{
-    		    	auto resp = MakeStringResponse(http::status::method_not_allowed,
-    		    	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
-    		    																  {"message", "Invalid method"}}),
-    		    																  req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, "no-cache", HeaderType::ALLOW_HEADERS);
-    		    	send(std::move(resp));
-    			}
+    		            if(parameters.starts_with(fullPrefix))
+    		            {
+    		                parameters.remove_prefix(fullPrefix.size());
+    		                if(parameters.empty())
+    		                {
+    		                    resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), 						req.version(), req.keep_alive());
+    		                }
+    		                else
+    		                {
+    		                    parameters.remove_prefix(1);
+    		                    const auto& responce = json_serializer::GetMapContentResponce(game_, {parameters.begin(), parameters.end()});
+    		                    if(!responce.empty())
+    		                    {
+    		                        resp = MakeStringResponse(http::status::ok, responce, 						           req.version(), req.keep_alive());
+    		                    }
+    		                    else
+    		                    {
+    		                        resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), 							    req.version(), req.keep_alive());
+    		                    }
+    		                }
+    		                send(std::move(resp));
+    		            }
+    		            else
+    		            {
+    		            	if(!parameters.starts_with(apiPrefix))
+    		            	{
+    			            	if((parameters.size() == 1) && parameters.starts_with('/'))
+    			            		parameters = "/index.html";
+
+    		            		auto extension = GetFileExtension(parameters);
+    		            		std::string mimeType = GetMimeType(extension);
+
+    		            		std::filesystem::path pathTrail = parameters;
+    					        std::filesystem::path basePath = game_.GetBasePath();
+    					        basePath += pathTrail;
+
+    					        try{
+    					        	auto fileResp = PrepareFile(basePath, mimeType);
+    					        	send(std::move(fileResp));
+    					        	event_logger::LogServerRespondSend(1000, static_cast<unsigned>(http::status::ok), mimeType);
+    					        }
+    					        catch(const std::filesystem::filesystem_error& ex)
+    					        {
+    					        	auto notFoundResp = MakeStringResponse(http::status::not_found,  json_serializer::MakeMapNotFoundResponce(), req.version(), req.keep_alive(), ContentType::TEXT_PLAIN);
+    					        	send(std::move(notFoundResp));
+    					        }
+    		            	}
+    		           }
+    		        }
+
     		}
     }
 private:
