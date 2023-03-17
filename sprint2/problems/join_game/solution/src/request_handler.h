@@ -154,7 +154,7 @@ public:
     			send(std::move(resp));
     		}
     		else
-    			if(req.method() == http::verb::get)
+    			if(req.method() == http::verb::head)
     			 {
     				auto resp = MakeStringResponse(http::status::method_not_allowed,""sv,
     											   req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
