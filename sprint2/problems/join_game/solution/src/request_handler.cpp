@@ -96,14 +96,18 @@ std::string GetAuthToken(std::string_view auth)
 
  StringResponse RequestHandler::MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
                                                    bool keep_alive, std::string_view content_type,
-                                                   std::string_view cache_control, std::string_view allow_headers)
+												   const std::initializer_list< std::pair<http::field, std::string_view> > & addition_headers)
  {
     StringResponse response(status, http_version);
     response.set(http::field::content_type, content_type);
-    if(cache_control.size())
-    	response.set(http::field::cache_control, cache_control);
-    if(allow_headers.size())
-    	response.set(http::field::allow, allow_headers);
+//    if(cache_control.size())
+ //   	response.set(http::field::cache_control, cache_control);
+ //   if(allow_headers.size())
+ //   	response.set(http::field::allow, allow_headers);
+    //std::map<http::field, std::string_view> headers(addition_headers);
+    for(auto it = addition_headers.begin(); it != addition_headers.end(); ++it)
+    	response.set(it->first, it->second);
+
     response.body() = body;
     response.content_length(body.size());
     response.keep_alive(keep_alive);

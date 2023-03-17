@@ -35,6 +35,7 @@ struct ContentType {
 struct HeaderType {
 	HeaderType() = delete;
     constexpr static std::string_view ALLOW_HEADERS = "GET, HEAD"sv;
+    constexpr static std::string_view ALLOW_POST = "POST"sv;
 };
 
 
@@ -54,7 +55,7 @@ public:
 
     StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
                                   bool keep_alive, std::string_view content_type = ContentType::APPLICATION_JSON,
-                                  std::string_view cache_control = std::string_view(), std::string_view allow_headers = std::string_view());
+                                  const std::initializer_list< std::pair<http::field, std::string_view> >& addition_headers = {});
 
     StringResponse HandleAuthRequest(const std::string& body, unsigned http_version, bool keep_alive)
     {
@@ -68,7 +69,7 @@ public:
     		auto resp = MakeStringResponse(http::status::bad_request,
     									  json_serializer::MakeMappedResponce({ {"code", "invalidArgument"},
     																			{"message", "Join game request parse error"}}),
-																				http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+																				http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
     		return resp;
     	}
     	try
@@ -76,7 +77,7 @@ public:
 //        	std::cout << "AddPlayer:" << std::endl;
     		auto [token, playerId] = game_.AddPlayer(respMap["mapId"], respMap["userName"]);
     		auto resp = MakeStringResponse(http::status::ok, json_serializer::MakeAuthResponce(token, playerId), http_version,
-    									    keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+    									    keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
     		return resp;
     	}
@@ -84,7 +85,7 @@ public:
     	{
     	     cout << e.what() << std::endl;
     	     auto resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), http_version, keep_alive,
-    	    		 	 	 	 	 	 	ContentType::APPLICATION_JSON, "no-cache");
+    	    		 	 	 	 	 	 	ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
     	     return resp;
     	}
     	catch(EmptyNameException& e)
@@ -92,7 +93,7 @@ public:
 //   	        std::cout << e.what() << std::endl;
             auto resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeMappedResponce({ {"code", "invalidArgument"},
 				  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  {"message", "Invalid name"}}),
-            								http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+            								http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
    	        return resp;
     	}
     }
@@ -110,7 +111,7 @@ public:
 				auto resp = MakeStringResponse(http::status::unauthorized,
     					    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
             																		  {"message", "Authorization header is missing"}}),
-																					  http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+																					  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
 				return resp;
 			}
@@ -120,14 +121,14 @@ public:
     	    	auto resp = MakeStringResponse(http::status::unauthorized,
     	    	    					       json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
     	    																		{"message", "Player token has not been found"}}),
-																					http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+																					http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
     	    	return resp;
     	    }
 			else
 			{
     	//    					std::cout << "FindAllPlayersForAuthInfo:" << auth_token << std::endl;
 				auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
-				auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache");
+				auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 				return resp;
     	    }
     	 }
@@ -137,7 +138,7 @@ public:
    		    	auto resp = MakeStringResponse(http::status::method_not_allowed,
    	    		    	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
    	    		    																  {"message", "Invalid method"}}),
-																					  http_version, keep_alive, ContentType::APPLICATION_JSON, "no-cache", HeaderType::ALLOW_HEADERS);
+																					  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
    		    	return resp;
   //  	    }
     }
@@ -153,11 +154,18 @@ public:
     			send(std::move(resp));
     		}
     		else
+    			if(req.method() == http::verb::get)
+    			 {
+    				auto resp = MakeStringResponse(http::status::method_not_allowed,""sv,
+    											   req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
+    			  	send(std::move(resp));
+    			 }
+    		else
     		{
     			auto resp = MakeStringResponse(http::status::method_not_allowed,
     					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
 															  {"message", "Only POST method is expected"}}),
-															  req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, "no-cache");
+															  req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
     			send(std::move(resp));
     		}
     	}
@@ -182,7 +190,8 @@ public:
     			StringResponse resp;
     			if(parameters.starts_with(apiPrefix) && !parameters.starts_with(fullPrefix))
     			{
-    		            resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeBadRequestResponce(),	 			      		        req.version(), req.keep_alive());
+    		            resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeBadRequestResponce(),
+    		            						  req.version(), req.keep_alive());
     		            send(std::move(resp));
     			}
     			else
@@ -192,7 +201,7 @@ public:
     		                parameters.remove_prefix(fullPrefix.size());
     		                if(parameters.empty())
     		                {
-    		                    resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), 						req.version(), req.keep_alive());
+    		                    resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), req.version(), req.keep_alive());
     		                }
     		                else
     		                {
@@ -200,11 +209,11 @@ public:
     		                    const auto& responce = json_serializer::GetMapContentResponce(game_, {parameters.begin(), parameters.end()});
     		                    if(!responce.empty())
     		                    {
-    		                        resp = MakeStringResponse(http::status::ok, responce, 						           req.version(), req.keep_alive());
+    		                        resp = MakeStringResponse(http::status::ok, responce, req.version(), req.keep_alive());
     		                    }
     		                    else
     		                    {
-    		                        resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), 							    req.version(), req.keep_alive());
+    		                        resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), req.version(), req.keep_alive());
     		                    }
     		                }
     		                send(std::move(resp));
@@ -230,7 +239,8 @@ public:
     					        }
     					        catch(const std::filesystem::filesystem_error& ex)
     					        {
-    					        	auto notFoundResp = MakeStringResponse(http::status::not_found,  json_serializer::MakeMapNotFoundResponce(), req.version(), req.keep_alive(), ContentType::TEXT_PLAIN);
+    					        	auto notFoundResp = MakeStringResponse(http::status::not_found,  json_serializer::MakeMapNotFoundResponce(),
+    					        										   req.version(), req.keep_alive(), ContentType::TEXT_PLAIN);
     					        	send(std::move(notFoundResp));
     					        }
     		            	}
