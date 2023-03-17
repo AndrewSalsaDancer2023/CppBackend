@@ -101,7 +101,7 @@ public:
     StringResponse HandleGetPlayersRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
     {
     	//    			std::cout << "Request get players:" <<std::endl;
-		if(method == http::verb::get)
+		if((method == http::verb::get) || (method == http::verb::head))
 		{
 			std::string auth_token = GetAuthToken(auth_type);
     	//    				std::cout << "authToken:" << auth_token << std::endl;
@@ -128,7 +128,11 @@ public:
 			{
     	//    					std::cout << "FindAllPlayersForAuthInfo:" << auth_token << std::endl;
 				auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
-				auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+				StringResponse resp;
+				if(method == http::verb::get)
+					resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+				else
+					resp = MakeStringResponse(http::status::ok, "", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 				return resp;
     	    }
     	 }
