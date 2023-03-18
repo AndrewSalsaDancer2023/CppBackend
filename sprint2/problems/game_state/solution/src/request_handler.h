@@ -161,11 +161,17 @@ public:
     	std::string auth_token = GetAuthToken(auth_type);
     	if(auth_token.empty() || !game_.HasSessionWithAuthInfo(auth_token))
 		{
-   	    	//    					std::cout << "authToken is empty" << std::endl;
-			auto resp = MakeStringResponse(http::status::unauthorized,
+    		StringResponse resp;
+    		if(auth_token.empty())
+    			resp = MakeStringResponse(http::status::unauthorized,
     				    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
            																		  {"message", "Authorization header is missing"}}),
       									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+    		else
+    			resp = MakeStringResponse(http::status::unauthorized,
+    			    				    					json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
+    			           																		  {"message", "Player token has not been found"}}),
+    			      									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
     		return resp;
        }

@@ -100,11 +100,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
  {
     StringResponse response(status, http_version);
     response.set(http::field::content_type, content_type);
-//    if(cache_control.size())
- //   	response.set(http::field::cache_control, cache_control);
- //   if(allow_headers.size())
- //   	response.set(http::field::allow, allow_headers);
-    //std::map<http::field, std::string_view> headers(addition_headers);
+
     for(auto it = addition_headers.begin(); it != addition_headers.end(); ++it)
     	response.set(it->first, it->second);
 
