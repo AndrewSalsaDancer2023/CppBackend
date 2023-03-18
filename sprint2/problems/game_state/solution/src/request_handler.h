@@ -162,7 +162,7 @@ public:
     	if(auth_token.empty() || !game_.HasSessionWithAuthInfo(auth_token))
 		{
     		StringResponse resp;
-    		if(auth_token.empty())
+    		if(auth_token.empty() || (auth_token.size() != 32))
     			resp = MakeStringResponse(http::status::unauthorized,
     				    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
            																		  {"message", "Authorization header is missing"}}),
