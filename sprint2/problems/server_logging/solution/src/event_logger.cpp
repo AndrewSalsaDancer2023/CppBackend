@@ -48,7 +48,7 @@ std::string GetLogTime()
 void InitLogger()
 {
 	logging::add_common_attributes();
-	logging::add_console_log(std::clog, keywords::format = &MyFormatter); 
+	logging::add_console_log(std::clog, keywords::auto_flush = true, keywords::format = &MyFormatter); 
 }
 
 void LogStartServer(const std::string& address, unsigned int port, const std::string& message)
