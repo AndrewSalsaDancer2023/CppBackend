@@ -151,10 +151,10 @@ public:
     {
     	if(method != http::verb::get)
     	{
-    		auto resp = MakeStringResponse(http::status::bad_request,
+    		auto resp = MakeStringResponse(http::status::method_not_allowed,
     	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
     																  {"message", "Invalid method"}}),
-																	  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+																	  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
 
     		return resp;
     	}
