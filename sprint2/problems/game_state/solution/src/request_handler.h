@@ -149,7 +149,7 @@ public:
 
     StringResponse HandleGetGameState(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
     {
-    	if(method != http::verb::get)
+    	if((method != http::verb::get) && (method != http::verb::head))
     	{
     		auto resp = MakeStringResponse(http::status::method_not_allowed,
     	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
@@ -171,8 +171,16 @@ public:
        }
 
 		auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
-		auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayersDogInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
-		return resp;
+		if(method == http::verb::get)
+		{
+			auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayersDogInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+			return resp;
+		}
+		else
+		{
+			auto resp = MakeStringResponse(http::status::ok, "", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+			return resp;
+		}
     }
 
     template <typename Body, typename Allocator, typename Send>
