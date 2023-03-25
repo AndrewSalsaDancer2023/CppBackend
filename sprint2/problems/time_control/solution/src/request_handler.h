@@ -21,10 +21,12 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 namespace sys = boost::system;
 
- using namespace std::literals;
+using namespace std::literals;
 
- using StringResponse = http::response<http::string_body>;
- using StaticFileResponce = http::response<http::file_body>;
+using StringResponse = http::response<http::string_body>;
+using StaticFileResponce = http::response<http::file_body>;
+
+
  
 struct ContentType {
     ContentType() = delete;
@@ -48,11 +50,15 @@ class RequestHandler {
 public:
     explicit RequestHandler(model::Game& game)
         : game_{game} {
+        InitApiRequestHandlers();
     }
 
     RequestHandler(const RequestHandler&) = delete;
     RequestHandler& operator=(const RequestHandler&) = delete;
-
+    bool IsApiRequest(const std::string& request);
+    void InitApiRequestHandlers();
+    StringResponse HandleApiRequest(const std::string& request, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive);
+    StringResponse HandleJoinGameRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive);
     StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
                                       bool keep_alive, std::string_view content_type = ContentType::APPLICATION_JSON,
                                       const std::initializer_list< std::pair<http::field, std::string_view> >& addition_headers = {});
@@ -62,32 +68,25 @@ public:
     StringResponse HandleGetGameState(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive);
     StringResponse HandlePlayerAction(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive);
     StringResponse HandleTickAction(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive);
+    void HandleFileRequest(const std::string_view target, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive);
 
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-    	if(!req.target().compare("/api/v1/game/join"sv))
+    	StringResponse resp;
+    	std::string request = {req.target().begin(), req.target().end()};
+    	std::cout << "Request:" << request << std::endl;
+    	if(IsApiRequest(request))
     	{
-//    		std::cout << "Request to join game:" <<std::endl;
-    		if(req.method() == http::verb::post)
-    		{
-    			auto resp = HandleAuthRequest(req.body(), req.version(),req.keep_alive());
-    			send(std::move(resp));
-    		}
-    		else
-    	    	if(req.method() == http::verb::head)
-    	    	 {
-    	    		auto resp = MakeStringResponse(http::status::method_not_allowed,""sv,
-    	    									   req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
-    	    	  	send(std::move(resp));
-    	    	 }
-    		else
-    		{
-    			auto resp = MakeStringResponse(http::status::method_not_allowed,
-    			    					       json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
-    																		  {"message", "Only POST method is expected"}}),
-    										   req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
-    			send(std::move(resp));
-    		}
+    		auto resp = HandleApiRequest(request, req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    		send(std::move(resp));
+    	}
+    	else
+    	{
+    		HandleFileRequest(req.target(), req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    	}
+    	/*if(!req.target().compare("/api/v1/game/join"sv))
+    	{
+    		HandleJoinGameRequest(req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
     	}
     	else
     		if(!req.target().compare("/api/v1/game/players"sv))
@@ -116,13 +115,20 @@ public:
     		else
     		{
     			if( req.method() != http::verb::get)
+    			{
+    				auto resp = MakeStringResponse(http::status::method_not_allowed,
+    					  	    				   json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
+												   req.version(),req.keep_alive(), ContentType::APPLICATION_JSON);
+
+    				send(std::move(resp));
     				return;
+    			}
     			std::string_view parameters = req.target();
     		 	std::string_view apiPrefix = "/api/";
     			std::string_view fullPrefix = "/api/v1/maps";
 
     			const std::string uri = {parameters.begin(), parameters.end()};
-    		        event_logger::LogServerRequestReceived("127.0.0.1", uri, "GET");
+    		        event_logger::LogServerRequestReceived(uri, "GET");
 
     			StringResponse resp;
     			if(parameters.starts_with(apiPrefix) && !parameters.starts_with(fullPrefix))
@@ -182,11 +188,11 @@ public:
     		           }
     		        }
 
-    		}
+    		}*/
     }
 private:
     model::Game& game_;
-    std::map<http::verb, std::function<void()>> handlers_;
+    std::map<std::string, std::function<StringResponse(http::verb, std::string_view, const std::string&, unsigned, bool)>> resp_map_;
 };
 
 class SyncWriteOStreamAdapter {

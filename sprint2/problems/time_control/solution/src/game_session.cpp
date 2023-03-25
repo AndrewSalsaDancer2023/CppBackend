@@ -61,15 +61,6 @@ std::shared_ptr<Player> GameSession::GetPlayerWithAuthToken(const std::string& a
 
 const std::vector<std::shared_ptr<Player>> GameSession::GetAllPlayers(const std::string& auth_token)
 {
-	//std::vector<std::shared_ptr<Player>> result;
-
-	//if(!HasPlayerWithAuthToken(auth_token))
-	//	return {};
-
-/*	std::for_each(players_.begin(), players_.end(), [&result](std::shared_ptr<Player>& player){
-		 	result[player->GetId()] = player->GetName();
-		 });
-*/
 	return players_;
 }
 

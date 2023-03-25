@@ -5,12 +5,26 @@
 #include "server_exceptions.h"
 #include <cmath>
 #include <iostream>
-constexpr float dE = 0.0001f;
-constexpr float dS = 0.4f;
+#include <random>
+namespace
+{
+	int GetRandowNumber(int minValue, int maxValue)
+	{
+		std::mt19937 engine;
+		std::random_device device;
+		engine.seed(device());
+
+		std::uniform_int_distribution<int> distribution(minValue, maxValue);
+
+
+		return distribution(engine);
+	}
+
+}
 
 namespace model
 {
-
+    constexpr float dS = 0.4f;
 	Dog::Dog(const model::Map *map) : map_(map)
 	{
 		direction_ = DogDirection::NORTH;
@@ -108,11 +122,31 @@ namespace model
 	    }
 	}
 
-	void DogNavigator::FindStartPositionOnMap()
+	void DogNavigator::SetStartPositionFirstRoad()
 	{
 		dog_info_.current_road_index = 0;
 		auto start = roads_[dog_info_.current_road_index].GetStart();
 		dog_info_.curr_position = DogPosition(start.x, start.y);
+	}
+
+	void DogNavigator::SetStartPositionRandomRoad()
+	{
+		dog_info_.current_road_index = GetRandowNumber(0, roads_.size()-1);
+		auto start = roads_[dog_info_.current_road_index].GetStart();
+		auto end = roads_[dog_info_.current_road_index].GetEnd();
+
+		if(roads_[dog_info_.current_road_index].IsHorizontal())
+		{
+			if(start.x > end.x)
+				std::swap(start, end);
+			dog_info_.curr_position = DogPosition(GetRandowNumber(start.x, end.x), start.y);
+		}
+		else
+		{
+			if(start.y < end.y)
+				std::swap(start, end);
+			dog_info_.curr_position = DogPosition(start.x, GetRandowNumber(start.y, end.y));
+		}
 	}
 
 	std::optional<size_t> DogNavigator::FindNearestAdjacentRoad(const Point& edge_point, bool is_horizontal_road)
@@ -371,7 +405,7 @@ namespace model
 	                if(newPos.y < ((float)start.y - dS))
 	                {
 	                    newPos.y = ((float)start.y - dS);
-	                    speed = {0.0f, 0.0f};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -389,7 +423,7 @@ namespace model
 	                if(newPos.y > ((float)end.y + dS))
 	                {
 	                    newPos.y = ((float)end.y + dS);
-	                    speed = {0.0f, 0.0f};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -417,7 +451,7 @@ namespace model
 	                if(newPos.x < ((float)start.x - dS))
 	                {
 	                    newPos.x = ((float)start.x - dS);
-	                    speed = {0.0f, 0.0f};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -435,7 +469,7 @@ namespace model
 	                if(newPos.x > ((float)end.x + dS))
 	                {
 	                    newPos.x = ((float)end.x + dS);
-	                    speed = {0.0f, 0.0f};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -444,6 +478,7 @@ namespace model
 
 	void DogNavigator::MoveDog(DogDirection direction, DogSpeed speed, int time)
 	{
+		dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
 
 	    float dt = (float)time/1000;
@@ -455,7 +490,8 @@ namespace model
 	    if(road.IsHorizontal())
 	    {
 	        if((direction == DogDirection::WEST) || (direction == DogDirection::EAST))
-	            FindNewPosMovingHorizontal(road, direction, newPos, speed);        else
+	            FindNewPosMovingHorizontal(road, direction, newPos, speed);
+	        else
 	            if((direction == DogDirection::NORTH) || (direction == DogDirection::SOUTH))
 	            {
 	                FindNewPosCrossMovingHorizontal(road, direction, newPos);
@@ -472,4 +508,12 @@ namespace model
 	            }
 	    }
 	}
+
+
+	void DogNavigator::SpawnDogInMap(bool spawn_in_random_point)
+	{
+		 if(spawn_in_random_point)
+			 SetStartPositionRandomRoad();
+	}
+
 }

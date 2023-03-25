@@ -222,6 +222,10 @@ public:
     void SetDefaultDogSpeed(double speed) { default_dog_speed_ = speed; }
     double GetDefaultDogSpeed() { return default_dog_speed_;}
     void MoveDogs(int deltaTime);
+    void SetTickPeriod(int period) { tick_period_ = period; }
+    void SetSpawnInRondomPoint(bool random_spawn) { spawn_in_random_points_ = random_spawn; }
+    int GetTickPeriod() { return tick_period_;}
+    bool GetSpawnInRandomPoint() { return spawn_in_random_points_;}
 private:
     std::shared_ptr<GameSession> FindSession(const std::string& map_name);
 private:
@@ -233,6 +237,8 @@ private:
     std::filesystem::path base_path_;
     std::vector<std::shared_ptr<GameSession>> sessions_;
     double default_dog_speed_{0.0};
+    int tick_period_{-1};
+    bool spawn_in_random_points_{false};
 };
 }
 // namespace model

@@ -82,14 +82,13 @@ void LogServerEnd(const std::string& message, int code, const std::string& excep
 
 }
 
-void LogServerRequestReceived(const std::string& ip_address, const std::string& uri, const std::string& http_method)
+void LogServerRequestReceived(const std::string& uri, const std::string& http_method)
 {
   json::object resp_object;
   resp_object["message"] = "request received";
   resp_object["timestamp"] = GetLogTime();
   
   json::object data_object;
-  data_object["ip"] = ip_address;
   data_object["URI"] = uri;
   data_object["method"] = http_method;
   

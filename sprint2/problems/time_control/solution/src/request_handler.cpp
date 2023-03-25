@@ -3,6 +3,7 @@
 #include <boost/beast.hpp>
 #include <iostream>
 #include <string_view>
+#include <set>
 
 using namespace std::literals;
 namespace fs = std::filesystem;
@@ -35,31 +36,18 @@ std::map <std::string_view, std::string> extensionToMime {
 {".mp3", "audio/mpeg"}
 };
 
+const std::string game_endpoint = "/api/v1/game/join";
+const std::string players_endpoint = "/api/v1/game/players";
+const std::string state_endpoint = "/api/v1/game/state";
+const std::string action_endpoint = "/api/v1/game/player/action";
+const std::string tick_endpoint = "/api/v1/game/tick";
+
 std::string GetMimeType(std::string_view extension)
 {
   auto it = extensionToMime.find(extension);
   if(it != extensionToMime.end())	
 	return it->second;
    return "";
-}
-
-std::string MakePathLowerCased(const std::string& str)
-{
-	return boost::to_lower_copy(str);
-}
-
-bool IsSubPath(fs::path path, fs::path base) {
-    // Приводим оба пути к каноничному виду (без . и ..)
-    path = fs::weakly_canonical(path);
-    base = fs::weakly_canonical(base);
-
-    // Проверяем, что все компоненты base содержатся внутри path
-    for (auto b = base.begin(), p = path.begin(); b != base.end(); ++b, ++p) {
-        if (p == path.end() || *p != *b) {
-            return false;
-        }
-    }
-    return true;
 }
 
 std::string_view GetFileExtension(std::string_view path)
@@ -92,6 +80,163 @@ std::string GetAuthToken(std::string_view auth)
 	}while(pos != std::string_view::npos);
 
 	return std::string(auth.begin(), auth.end());
+}
+
+bool RequestHandler::IsApiRequest(const std::string& request)
+{
+	std::set<std::string> api_endpoints {game_endpoint, players_endpoint,  state_endpoint, action_endpoint, tick_endpoint};
+
+	return api_endpoints.find(request) != api_endpoints.end();
+}
+
+StringResponse RequestHandler::HandleApiRequest(const std::string& request, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
+{
+	StringResponse resp;
+	auto it_handler = resp_map_.find(request);
+	if(it_handler != resp_map_.end())
+		return it_handler->second(method, auth_type, body, http_version, keep_alive);
+
+	return resp;
+}
+
+void RequestHandler::InitApiRequestHandlers()
+{
+	auto join_game_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+				 {
+			 	 	 return HandleJoinGameRequest(method, auth_type, body, http_version, keep_alive);
+				 };
+
+	auto get_players_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+				 {
+			 	 	 return HandleGetPlayersRequest(method, auth_type, body, http_version, keep_alive);
+				 };
+
+	auto get_state_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+				 {
+			 	 	 return HandleGetGameState(method, auth_type, body, http_version, keep_alive);
+				 };
+
+	auto action_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+				 {
+			 	 	  return HandlePlayerAction(method, auth_type, body, http_version, keep_alive);
+				 };
+
+	auto tick_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+				{
+			 	  	return  HandleTickAction(method, auth_type, body, http_version, keep_alive);
+				};
+
+	resp_map_[game_endpoint] = join_game_handler;
+	resp_map_[players_endpoint] = get_players_handler;
+	resp_map_[state_endpoint] = get_state_handler;
+	resp_map_[action_endpoint] = action_handler;
+	resp_map_[tick_endpoint] = tick_handler;
+}
+
+void RequestHandler::HandleFileRequest(const std::string_view target, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
+{
+/*	if(method != http::verb::get)
+	  {
+	  	auto resp = MakeStringResponse(http::status::method_not_allowed,
+	  		  	    				   json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
+									   http_version, keep_alive, ContentType::APPLICATION_JSON);
+	  	send(std::move(resp));
+		return;
+	  }
+
+	std::string_view parameters = target;
+	std::string_view apiPrefix = "/api/";
+	std::string_view fullPrefix = "/api/v1/maps";
+
+	const std::string uri = {parameters.begin(), parameters.end()};
+	event_logger::LogServerRequestReceived(uri, "GET");
+
+	StringResponse resp;
+	if(parameters.starts_with(apiPrefix) && !parameters.starts_with(fullPrefix))
+	  {
+	        resp = MakeStringResponse(http::status::bad_request, json_serializer::MakeBadRequestResponce(),	http_version, keep_alive);
+	        send(std::move(resp));
+	        return;
+	  }
+      else
+      {
+    	  if(parameters.starts_with(fullPrefix))
+	      {
+    		  parameters.remove_prefix(fullPrefix.size());
+    		  if(parameters.empty())
+	    	  {
+	    		  resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), http_version, keep_alive);
+	    	  }
+    		  else
+	    	  {
+	    		  parameters.remove_prefix(1);
+	    		  const auto& responce = json_serializer::GetMapContentResponce(game_, {parameters.begin(), parameters.end()});
+	    		  if(!responce.empty())
+	    		  	{
+	    			  resp = MakeStringResponse(http::status::ok, responce, http_version, keep_alive);
+	    		    }
+	    		    else
+	    		   {
+	    		      resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), http_version, keep_alive);
+	    		   }
+	    	   }
+    		  send(std::move(resp));
+	      }
+    	  else
+	      {
+    		  if(!parameters.starts_with(apiPrefix))
+	    		{
+    			  if((parameters.size() == 1) && parameters.starts_with('/'))
+    				  parameters = "/index.html";
+
+    			  	  auto extension = GetFileExtension(parameters);
+    			  	  std::string mimeType = GetMimeType(extension);
+
+    			  	  std::filesystem::path pathTrail = parameters;
+    			  	  std::filesystem::path basePath = game_.GetBasePath();
+    			  	  basePath += pathTrail;
+
+    			  	  try{
+    			  		  auto fileResp = MakeFileResponce(basePath, mimeType);
+    			  		  send(std::move(fileResp));
+    			  		  event_logger::LogServerRespondSend(1000, static_cast<unsigned>(http::status::ok), mimeType);
+    			  	  }
+    			  	  catch(const std::filesystem::filesystem_error& ex)
+    			  	  {
+    			  		  auto notFoundResp = MakeStringResponse(http::status::not_found,  json_serializer::MakeMapNotFoundResponce(), http_version, keep_alive, ContentType::TEXT_PLAIN);
+    			  		  send(std::move(notFoundResp));
+    			  	  }
+	    		}
+	      }
+      }
+*/
+}
+
+
+StringResponse RequestHandler::HandleJoinGameRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
+{
+	StringResponse resp;
+	if(method == http::verb::post)
+	{
+		resp = HandleAuthRequest(body, http_version, keep_alive);
+	}
+	else
+    	if(method == http::verb::head)
+    	{
+    		resp = MakeStringResponse(http::status::method_not_allowed,""sv,
+    								  http_version, keep_alive,
+									  ContentType::APPLICATION_JSON,
+									  {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
+    	}
+    	else
+    	{
+    		resp = MakeStringResponse(http::status::method_not_allowed,
+		    					       json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},{"message", "Only POST method is expected"}}),
+									   http_version, keep_alive, ContentType::APPLICATION_JSON,
+								   {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
+    	}
+
+	return resp;
 }
 
 StringResponse RequestHandler::MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
@@ -314,6 +459,8 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
  	auto session =  game_.GetSessionWithAuthInfo(auth_token);
  	auto map = game_.FindMap(model::Map::Id(session->GetMap()));
 	auto map_speed = map->GetDogSpeed();
+
+	player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
 	model::DogDirection dir =  json_loader::GetMoveDirection(body);
 	player->GetDog()->SetSpeed(dir, map_speed > 0.0 ? map_speed : game_.GetDefaultDogSpeed());
 	auto resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
