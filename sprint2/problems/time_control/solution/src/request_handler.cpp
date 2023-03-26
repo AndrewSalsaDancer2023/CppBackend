@@ -478,7 +478,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 
 	  		return resp;
 	  	}
-	  	std::string auth_token = GetAuthToken(auth_type);
+/*	  	std::string auth_token = GetAuthToken(auth_type);
 	  	if(auth_token.empty())
 	  	{
 	  	 //  	std::cout << "authToken is empty" << std::endl;
@@ -488,7 +488,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 	  	   									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
 	  		return resp;
-	  	}
+	  	}*/
 	  	try{
 	  		int deltaTime = json_loader::ParseDeltaTimeRequest(body);
 	  		//std::cout << "HandleTickAction:" << deltaTime << std::endl;
