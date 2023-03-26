@@ -31,9 +31,9 @@ namespace model
 		navigator_ = std::make_shared<DogNavigator>(map_->GetRoads());
 	}
 
-	void Dog::SetSpeed(model::DogDirection dir, float default_speed)
+	void Dog::SetSpeed(model::DogDirection dir, double speed)
 	{
-		double speed = default_speed;
+		//std::cout << "Call Dog::SetSpeed:"<< std::endl;
 		std::map<model::DogDirection, DogSpeed> velMap{{DogDirection::EAST, {speed, 0}},
 														   {DogDirection::WEST, {-speed, 0}},
 														   {DogDirection::SOUTH, {0, speed}},
@@ -46,11 +46,14 @@ namespace model
 
 		direction_ = dir;
 		speed_ = findVel->second;
+		navigator_->SetDogSpeed(speed_);
+
+		//std::cout << "Dog::SetSpeed:" << (unsigned)direction_ << "vx:" << speed_.vx << "vy:" << speed_.vy  << std::endl;
 	}
 
 	void Dog::Move(int deltaTime)
 	{
-		std::cout << "Move dog:" << std::endl;
+	//	std::cout << "Move dog direction: " << (unsigned)direction_ << " vx:" << speed_.vx << " vy:" << speed_.vy  << std::endl;
 		navigator_->MoveDog(direction_, speed_, deltaTime);
 	}
 

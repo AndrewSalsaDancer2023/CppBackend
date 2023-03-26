@@ -12,7 +12,8 @@
 #include "event_logger.h"
 #include <functional>
 #include "server_exceptions.h"
-
+#include <boost/asio/io_context.hpp>
+#include <cassert>
 namespace net = boost::asio;
 
 namespace http_handler {
@@ -25,8 +26,7 @@ using namespace std::literals;
 
 using StringResponse = http::response<http::string_body>;
 using StaticFileResponce = http::response<http::file_body>;
-
-
+//using Strand = boost::asio::strand<boost::asio::io_context::executor_type>;//net::strand<net::io_context::executor_type>; //boost::asio::io_context::executor_type
  
 struct ContentType {
     ContentType() = delete;
@@ -46,11 +46,12 @@ std::string_view GetFileExtension(std::string_view path);
 std::string GetMimeType(std::string_view extension);
 std::string GetAuthToken(std::string_view auth);
 
-class RequestHandler {
+class RequestHandler: public std::enable_shared_from_this<RequestHandler> {
 public:
-    explicit RequestHandler(model::Game& game)
-        : game_{game} {
+    explicit RequestHandler(model::Game& game, net::io_context& ioc)
+        : game_{game}, ioc_(ioc) {
         InitApiRequestHandlers();
+    //    strand_ = net::make_strand(ioc_);
     }
 
     RequestHandler(const RequestHandler&) = delete;
@@ -72,9 +73,24 @@ public:
 
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
-    	StringResponse resp;
+
+    	std::string request = {req.target().begin(), req.target().end()};
+/*    	if(IsApiRequest(request))
+    	{
+    	    // Все запросы к API выполняются последовательно внутри strand
+    		return net::dispatch(strand_, [self = shared_from_this(), send = std::move(send), req = std::move(req)]
+			{
+    			std::string request = {req.target().begin(), req.target().end()};
+    	       // Этот assert не выстрелит, так как лямбда-функция будет выполняться внутри strand
+    		    //assert(self->strand_.running_in_this_thread());
+    	       auto resp = self->HandleApiRequest(request, req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    	       send(std::move(resp));
+    	    });
+    	}*/
+/*
     	std::string request = {req.target().begin(), req.target().end()};
     	std::cout << "Request:" << request << std::endl;
+    	StringResponse resp;
     	if(IsApiRequest(request))
     	{
     		auto resp = HandleApiRequest(request, req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
@@ -84,9 +100,11 @@ public:
     	{
     		HandleFileRequest(req.target(), req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
     	}
-    	/*if(!req.target().compare("/api/v1/game/join"sv))
+*/
+  /*  	if(!req.target().compare("/api/v1/game/join"sv))
     	{
-    		HandleJoinGameRequest(req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    		auto resp = HandleJoinGameRequest(req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    		send(std::move(resp));
     	}
     	else
     		if(!req.target().compare("/api/v1/game/players"sv))
@@ -111,7 +129,12 @@ public:
     			    	{
     			    		auto resp = HandleTickAction(req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
     			    		send(std::move(resp));
-    			    	}
+    			    	}*/
+    		if(IsApiRequest(request))
+    	    {
+    	    	auto resp = HandleApiRequest(request, req.method(), req[http::field::authorization], req.body(), req.version(),req.keep_alive());
+    	    	send(std::move(resp));
+    	    }
     		else
     		{
     			if( req.method() != http::verb::get)
@@ -188,9 +211,11 @@ public:
     		           }
     		        }
 
-    		}*/
+    		}
     }
 private:
+    net::io_context& ioc_;
+//    Strand strand_;
     model::Game& game_;
     std::map<std::string, std::function<StringResponse(http::verb, std::string_view, const std::string&, unsigned, bool)>> resp_map_;
 };

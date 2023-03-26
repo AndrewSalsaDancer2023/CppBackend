@@ -1,5 +1,5 @@
 #include "request_handler.h"
-#include <boost/algorithm/string.hpp>    
+//#include <boost/algorithm/string.hpp>
 #include <boost/beast.hpp>
 #include <iostream>
 #include <string_view>
@@ -320,51 +320,48 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 
  StringResponse RequestHandler::HandleGetPlayersRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
  {
- 	//    			std::cout << "Request get players:" <<std::endl;
- 	if((method == http::verb::get) || (method == http::verb::head))
-		{
-			std::string auth_token = GetAuthToken(auth_type);
- 	//    				std::cout << "authToken:" << auth_token << std::endl;
-			if(auth_token.empty())
-			{
- 	//    					std::cout << "authToken is empty" << std::endl;
-				auto resp = MakeStringResponse(http::status::unauthorized,
- 					    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
-         																		  {"message", "Authorization header is missing"}}),
-																					  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+ 	//std::cout << "HandleGetPlayersRequest:" <<std::endl;
 
-				return resp;
-			}
-			if(!game_.HasSessionWithAuthInfo(auth_token))
-			{
- 	//    					std::cout << "No player win auth!" << std::endl;
- 	    	auto resp = MakeStringResponse(http::status::unauthorized,
- 	    	    					       json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
- 	    																		{"message", "Player token has not been found"}}),
-																					http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+    if((method != http::verb::get) && (method != http::verb::head))
+     {
+ 	    	auto resp = MakeStringResponse(http::status::method_not_allowed,
+     		    	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
+     		    																  {"message", "Invalid method"}}),
+ 											http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
  	    	return resp;
- 	    }
-			else
-			{
- 	//    					std::cout << "FindAllPlayersForAuthInfo:" << auth_token << std::endl;
-				auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
-				StringResponse resp;
-				if(method == http::verb::get)
-					auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
-				else
-					auto resp = MakeStringResponse(http::status::ok, "", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
-				return resp;
- 	    }
- 	 }
-// 	 else
-//    	    if((req.method() != http::verb::get) && (req.method() != http::verb::head))
-//    	    {
-		    	auto resp = MakeStringResponse(http::status::method_not_allowed,
-	    		    	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
-	    		    																  {"message", "Invalid method"}}),
-												http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
-		    	return resp;
-//  	    }
+     }
+
+
+	std::string auth_token = GetAuthToken(auth_type);
+ 	//    				std::cout << "authToken:" << auth_token << std::endl;
+	if(auth_token.empty())
+	{
+ 	//    					std::cout << "authToken is empty" << std::endl;
+		auto resp = MakeStringResponse(http::status::unauthorized,
+ 	  		    					   json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
+         																	  {"message", "Authorization header is missing"}}),
+																			  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+
+		return resp;
+	}
+	if(!game_.HasSessionWithAuthInfo(auth_token))
+	{
+ 	//    					std::cout << "No player win auth!" << std::endl;
+		auto resp = MakeStringResponse(http::status::unauthorized,
+									   json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
+ 										        						     {"message", "Player token has not been found"}}),
+										http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+		return resp;
+	}
+
+ 	//std::cout << "FindAllPlayersForAuthInfo:" << auth_token << std::endl;
+	auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
+	StringResponse resp;
+	if(method == http::verb::get)
+		resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayerInfoResponce(players), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	else
+		resp = MakeStringResponse(http::status::ok, "", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	return resp;
  }
 
  bool IsValidAuthToken(const std::string& token, size_t valid_size)
@@ -454,7 +451,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 
      		return resp;
  		}
- 	std::cout << "Set dog speed and direction" << std::endl;
+ 	//std::cout << "Set dog speed and direction" << std::endl;
  	auto player =  game_.GetPlayerWithAuthToken(auth_token);
  	auto session =  game_.GetSessionWithAuthInfo(auth_token);
  	auto map = game_.FindMap(model::Map::Id(session->GetMap()));
@@ -463,6 +460,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 	player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
 	model::DogDirection dir =  json_loader::GetMoveDirection(body);
 	player->GetDog()->SetSpeed(dir, map_speed > 0.0 ? map_speed : game_.GetDefaultDogSpeed());
+	//std::cout << "Set Dog Parameters speed:" << (unsigned) dir << " map_speed:" <<  map_speed << "def sped: " << game_.GetDefaultDogSpeed() << std::endl;
 	auto resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	return resp;
  }
@@ -471,20 +469,20 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
  {
 	 StringResponse resp;
 
-	 std::cout << "HandleTickAction:" << std::endl;
+	// std::cout << "Call Method HandleTickAction" << std::endl;
 	  	if(method != http::verb::post)
 	  	{
-	  		auto resp = MakeStringResponse(http::status::method_not_allowed,
-	  	    					           json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
-                                           http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	  		resp = MakeStringResponse(http::status::method_not_allowed,
+	  	      			              json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
+                                      http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
 	  		return resp;
 	  	}
 	  	std::string auth_token = GetAuthToken(auth_type);
 	  	if(auth_token.empty())
 	  	{
-	  	   	//    					std::cout << "authToken is empty" << std::endl;
-	  		auto resp = MakeStringResponse(http::status::unauthorized,
+	  	 //  	std::cout << "authToken is empty" << std::endl;
+	  		resp = MakeStringResponse(http::status::unauthorized,
 	  	 				    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
 	  	        																		  {"message", "Authorization header is required"}}),
 	  	   									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
@@ -493,13 +491,13 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 	  	}
 	  	try{
 	  		int deltaTime = json_loader::ParseDeltaTimeRequest(body);
-	  		std::cout << "HandleTickAction:" << deltaTime << std::endl;
+	  		//std::cout << "HandleTickAction:" << deltaTime << std::endl;
 	  		game_.MoveDogs(deltaTime);
-	  		auto resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	  		resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  	}
 	  	catch(BadDeltaTimeException& ex)
 	  	{
-	  		auto resp = MakeStringResponse(http::status::bad_request,
+	  		resp = MakeStringResponse(http::status::bad_request,
   				    					   json_serializer::MakeMappedResponce({ {"code", "invalidArgument"},{"message", "Failed to parse tick request JSON"}}),
  	   									   http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  	}

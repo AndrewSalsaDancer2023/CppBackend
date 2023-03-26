@@ -55,6 +55,7 @@ public:
     DogPosition GetDogPosition() { return dog_info_.curr_position;}
     DogSpeed GetDogSpeed() { return dog_info_.curr_speed;}
     void SpawnDogInMap(bool spawn_in_random_point);
+    void SetDogSpeed(const DogSpeed& speed) { dog_info_.curr_speed = speed;}
 private:
     bool RoadsCrossed(const Road& road1, const Road& road2);
     void FindAdjacentRoads();
@@ -81,7 +82,7 @@ class Dog
 public:
 	Dog(const model::Map *map);
 //	void SetPosition(const DogPosition& pos) {position_ = pos;}
-	void SetSpeed(model::DogDirection dir, float default_speed);
+	void SetSpeed(model::DogDirection dir, double speed);
 	void SetDirection(const DogDirection& dir) { direction_ = dir;}
 	void Move(int deltaTime);
 //	void PlaceToMap();

@@ -70,6 +70,13 @@ namespace json_loader {
 	
 	model::Map map(model::Map::Id(idVal.data()), nameVal.data());
 
+	if(map_object.contains("dogSpeed"))
+	{
+		double dogSpeed = map_object.at("dogSpeed").as_double();
+		map.SetDogSpeed(dogSpeed);
+		//std::cout << "Dog Speed:" << dogSpeed << std::endl;
+	}
+
 	auto roads = ParseObjects<model::Road>(map_object, "roads", ParseRoad);
 	for(const auto& road: roads)
 	{
@@ -102,6 +109,14 @@ namespace json_loader {
         while(input >> sstr.rdbuf());
         auto value = json::parse(sstr.str());
    
+        json::object object_to_read = value.as_object();
+        if(object_to_read.contains("defaultDogSpeed"))
+        {
+        	double defaultDogSpeed = object_to_read.at("defaultDogSpeed").as_double();
+        	game.SetDefaultDogSpeed(defaultDogSpeed);
+           	//std::cout << "Default  dog Speed:" << defaultDogSpeed << std::endl;
+        }
+
         auto arr = value.at("maps").as_array();
 
         for(auto index = 0; index < arr.size(); ++index)
