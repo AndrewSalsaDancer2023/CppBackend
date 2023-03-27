@@ -24,7 +24,7 @@ namespace
 
 namespace model
 {
-    constexpr double dS = 0.4f;
+    constexpr double dS = 0.4;
 	Dog::Dog(const model::Map *map) : map_(map)
 	{
 		direction_ = DogDirection::NORTH;
@@ -339,12 +339,12 @@ namespace model
 	        return;
 	    }
 
-	    if(std::abs(newPos.y - road.GetStart().y) > dS)
+	    if(std::abs(newPos.y - (double)road.GetStart().y) > dS)
 	    {
 	        if(direction == DogDirection::NORTH)
-	            newPos.y = road.GetStart().y - dS;
+	            newPos.y = (double)road.GetStart().y - dS;
 	        else
-	            newPos.y = road.GetStart().y + dS;
+	            newPos.y = (double)road.GetStart().y + dS;
 	    }
 
 	    dog_info_.curr_position = newPos;
@@ -376,12 +376,12 @@ namespace model
 	        return;
 	    }
 
-	    if(std::abs(newPos.x - road.GetStart().x) > dS)
+	    if(std::abs(newPos.x - (double)road.GetStart().x) > dS)
 	    {
 	        if(direction == DogDirection::WEST)
-	            newPos.x = road.GetStart().x - dS;
+	            newPos.x = (double)road.GetStart().x - dS;
 	        else
-	            newPos.x = road.GetStart().x + dS;
+	            newPos.x = (double)road.GetStart().x + dS;
 	    }
 
 	    dog_info_.curr_position = newPos;
@@ -408,7 +408,7 @@ namespace model
 	                if(newPos.y < ((double)start.y - dS))
 	                {
 	                    newPos.y = ((double)start.y - dS);
-	                    dog_info_.curr_speed = {0.0, 0.0};
+//	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -426,7 +426,7 @@ namespace model
 	                if(newPos.y > ((double)end.y + dS))
 	                {
 	                    newPos.y = ((double)end.y + dS);
-	                    dog_info_.curr_speed = {0.0, 0.0};
+//	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -454,7 +454,7 @@ namespace model
 	                if(newPos.x < ((double)start.x - dS))
 	                {
 	                    newPos.x = ((double)start.x - dS);
-	                    dog_info_.curr_speed = {0.0, 0.0};
+//	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -472,7 +472,7 @@ namespace model
 	                if(newPos.x > ((double)end.x + dS))
 	                {
 	                    newPos.x = ((double)end.x + dS);
-	                    dog_info_.curr_speed = {0.0, 0.0};
+//	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
