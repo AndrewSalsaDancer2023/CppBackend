@@ -110,7 +110,7 @@ std::string GetAuthToken(std::string_view auth)
     return response;
  }
  
- http::response<http::file_body> MakeFileResponce(const std::filesystem::path& json_path, const std::string& mime_type)
+ http::response<http::file_body> PrepareFile(const std::filesystem::path& json_path, const std::string& mime_type)
  {
     http::response<http::file_body> res;
     res.version(11);  // HTTP/1.1

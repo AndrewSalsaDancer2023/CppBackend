@@ -38,7 +38,7 @@ struct HeaderType {
 };
 
 
-http::response<http::file_body> MakeFileResponce(const std::filesystem::path& json_path, const std::string& mime_type);
+http::response<http::file_body> PrepareFile(const std::filesystem::path& json_path, const std::string& mime_type);
 std::string_view GetFileExtension(std::string_view path);
 std::string GetMimeType(std::string_view extension);
 std::string GetAuthToken(std::string_view auth);
@@ -309,7 +309,7 @@ public:
     					        basePath += pathTrail;
 
     					        try{
-    					        	auto fileResp = MakeFileResponce(basePath, mimeType);
+    					        	auto fileResp = PrepareFile(basePath, mimeType);
     					        	send(std::move(fileResp));
     					        	event_logger::LogServerRespondSend(1000, static_cast<unsigned>(http::status::ok), mimeType);
     					        }
