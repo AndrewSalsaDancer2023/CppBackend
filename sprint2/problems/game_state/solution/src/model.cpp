@@ -65,7 +65,7 @@ Game::PlayerAuthInfo Game::AddPlayer(const std::string& map_id, const std::strin
     if(!session)
     	session = std::make_shared<GameSession>(map_id);
     
-    auto player = session->AddPlayer(player_name);
+    auto player = session->AddPlayer(player_name, mapToAdd);
     sessions_.push_back(session);
     
     return {player->GetToken(), player->GetId()};
