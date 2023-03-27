@@ -49,7 +49,6 @@ public:
         SetStartPositionFirstRoad();
     }
 public:
-    std::pair<float, float> GetPosition();
     void MoveDog(DogDirection direction, DogSpeed speed, int time);
     DogPos GetDogPos() { return  dog_info_;}
     DogPosition GetDogPosition() { return dog_info_.curr_position;}

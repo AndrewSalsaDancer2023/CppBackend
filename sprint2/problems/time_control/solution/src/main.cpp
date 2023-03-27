@@ -38,7 +38,7 @@ int main(int argc, const char* argv[]) {
 
     try {
         // 1. Загружаем карту из файла и построить модель игры
-        model::Game game = json_loader::LoadGame(argv[1], argv[2]);
+        model::Game game = json_loader::LoadGame(argv[1], argv[2]);//"../../data/config.json", "../../static");//argv[1], argv[2]);
 
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
@@ -66,8 +66,8 @@ int main(int argc, const char* argv[]) {
         constexpr net::ip::port_type port = 8080;
         
         http_server::ServeHttp(ioc, {address, port}, [&handler](auto&& req, auto&& send) {
-            //handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
-        	handler->operator()(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
+            (*handler)(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
+            //handler->operator()(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
         });
         
 	event_logger::InitLogger();

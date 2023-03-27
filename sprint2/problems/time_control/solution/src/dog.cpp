@@ -24,7 +24,7 @@ namespace
 
 namespace model
 {
-    constexpr float dS = 0.4f;
+    constexpr double dS = 0.4f;
 	Dog::Dog(const model::Map *map) : map_(map)
 	{
 		direction_ = DogDirection::NORTH;
@@ -199,8 +199,8 @@ namespace model
 	        if(!adj_road.IsVertical())
 	            continue;
 
-	        float dist1 = std::abs((float)adj_road.GetStart().x - edge_point.x);
-	        float dist2 = std::abs((float)adj_road.GetEnd().x - edge_point.x);
+	        double dist1 = std::abs((double)adj_road.GetStart().x - edge_point.x);
+	        double dist2 = std::abs((double)adj_road.GetEnd().x - edge_point.x);
 
 	        if((dist1 <= 2*dS) || (dist2 <= 2*dS))
 	        {
@@ -226,8 +226,8 @@ namespace model
 	        if(!adj_road.IsHorizontal())
 	            continue;
 
-	        float dist1 = std::abs((float)adj_road.GetStart().y - edge_point.y);
-	        float dist2 = std::abs((float)adj_road.GetEnd().y - edge_point.y);
+	        double dist1 = std::abs((double)adj_road.GetStart().y - edge_point.y);
+	        double dist2 = std::abs((double)adj_road.GetEnd().y - edge_point.y);
 
 	        if((dist1 <= 2*dS) || (dist2 <= 2*dS))
 	        {
@@ -257,8 +257,8 @@ namespace model
 	        if((newPos.x < (double)adj_road.GetStart().x) && (newPos.x < (double)adj_road.GetEnd().x))
 	            continue;
 
-	        float dist1 = std::abs((double)adj_road.GetStart().y - newPos.y);
-	        float dist2 = std::abs((double)adj_road.GetEnd().y - newPos.y);
+	        double dist1 = std::abs((double)adj_road.GetStart().y - newPos.y);
+	        double dist2 = std::abs((double)adj_road.GetEnd().y - newPos.y);
 
 	        if((dist1 <= 2*dS) || (dist2 <= 2*dS))
 	        {
@@ -282,14 +282,14 @@ namespace model
 
 	        const auto& adj_road = roads_[road_info.road_index];//dog_info_.current_road_index];
 
-	        if((newPos.y < (float)adj_road.GetStart().y) && (newPos.y < (float)adj_road.GetEnd().y))
+	        if((newPos.y < (double)adj_road.GetStart().y) && (newPos.y < (double)adj_road.GetEnd().y))
 	            continue;
 
-	        if((newPos.y > (float)adj_road.GetStart().y) && (newPos.y > (float)adj_road.GetEnd().y))
+	        if((newPos.y > (double)adj_road.GetStart().y) && (newPos.y > (double)adj_road.GetEnd().y))
 	            continue;
 
-	        float dist1 = std::abs((float)adj_road.GetStart().x - newPos.x);
-	        float dist2 = std::abs((float)adj_road.GetEnd().x - newPos.x);
+	        double dist1 = std::abs((double)adj_road.GetStart().x - newPos.x);
+	        double dist2 = std::abs((double)adj_road.GetEnd().x - newPos.x);
 
 	        if((dist1 <= 2*dS) || (dist2 <= 2*dS))
 	        {
@@ -397,7 +397,7 @@ namespace model
 
 	    if(direction == DogDirection::NORTH)
 	    {
-	        if(newPos.y < (float)start.y)
+	        if(newPos.y < (double)start.y)
 	        {
 	            std::optional<size_t> adjRoad = FindNearestAdjacentRoad(road.GetStart(), false);
 	            if(adjRoad)
@@ -405,9 +405,9 @@ namespace model
 	                dog_info_.current_road_index = *adjRoad;
 	            }
 	            else
-	                if(newPos.y < ((float)start.y - dS))
+	                if(newPos.y < ((double)start.y - dS))
 	                {
-	                    newPos.y = ((float)start.y - dS);
+	                    newPos.y = ((double)start.y - dS);
 	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
@@ -415,7 +415,7 @@ namespace model
 	    }
 	    else
 	    {
-	        if(newPos.y > (float)end.y)
+	        if(newPos.y > (double)end.y)
 	        {
 	            std::optional<size_t> adjRoad = FindNearestAdjacentRoad(road.GetEnd(), false);
 	            if(adjRoad)
@@ -423,9 +423,9 @@ namespace model
 	                dog_info_.current_road_index = *adjRoad;
 	            }
 	            else
-	                if(newPos.y > ((float)end.y + dS))
+	                if(newPos.y > ((double)end.y + dS))
 	                {
-	                    newPos.y = ((float)end.y + dS);
+	                    newPos.y = ((double)end.y + dS);
 	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
@@ -443,7 +443,7 @@ namespace model
 
 	    if(direction == DogDirection::WEST)
 	    {
-	        if(newPos.x < (float)start.x)
+	        if(newPos.x < (double)start.x)
 	        {
 	            std::optional<size_t> adjRoad = FindNearestAdjacentRoad(road.GetStart(), true);
 	            if(adjRoad)
@@ -451,9 +451,9 @@ namespace model
 	                dog_info_.current_road_index = *adjRoad;
 	            }
 	            else
-	                if(newPos.x < ((float)start.x - dS))
+	                if(newPos.x < ((double)start.x - dS))
 	                {
-	                    newPos.x = ((float)start.x - dS);
+	                    newPos.x = ((double)start.x - dS);
 	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
@@ -461,7 +461,7 @@ namespace model
 	    }
 	    else
 	    {
-	        if(newPos.x > (float)end.x)
+	        if(newPos.x > (double)end.x)
 	        {
 	            std::optional<size_t> adjRoad = FindNearestAdjacentRoad(road.GetEnd(), true);
 	            if(adjRoad)
@@ -469,9 +469,9 @@ namespace model
 	                dog_info_.current_road_index = *adjRoad;
 	            }
 	            else
-	                if(newPos.x > ((float)end.x + dS))
+	                if(newPos.x > ((double)end.x + dS))
 	                {
-	                    newPos.x = ((float)end.x + dS);
+	                    newPos.x = ((double)end.x + dS);
 	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
@@ -484,7 +484,7 @@ namespace model
 		dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
 
-	    float dt = (float)time/1000;
+	    double dt = (double)time/1000;
 	    DogPosition newPos{0.0, 0.0};
 
 	    newPos.x = dog_info_.curr_position.x + dt * speed.vx;
