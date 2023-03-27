@@ -35,13 +35,13 @@ std::map <std::string_view, std::string> extensionToMime {
 {".svgz", "image/svg+xml"},
 {".mp3", "audio/mpeg"}
 };
-
+/*
 const std::string game_endpoint = "/api/v1/game/join";
 const std::string players_endpoint = "/api/v1/game/players";
 const std::string state_endpoint = "/api/v1/game/state";
 const std::string action_endpoint = "/api/v1/game/player/action";
 const std::string tick_endpoint = "/api/v1/game/tick";
-
+*/
 std::string GetMimeType(std::string_view extension)
 {
   auto it = extensionToMime.find(extension);
@@ -62,6 +62,7 @@ std::string_view GetFileExtension(std::string_view path)
   return "";
 }
 
+/*
 std::string GetAuthToken(std::string_view auth)
 {
 	std::string_view prefix = "Bearer"sv;
@@ -132,10 +133,11 @@ void RequestHandler::InitApiRequestHandlers()
 	resp_map_[action_endpoint] = action_handler;
 	resp_map_[tick_endpoint] = tick_handler;
 }
-
+*/
+/*
 void RequestHandler::HandleFileRequest(const std::string_view target, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
 {
-/*	if(method != http::verb::get)
+	if(method != http::verb::get)
 	  {
 	  	auto resp = MakeStringResponse(http::status::method_not_allowed,
 	  		  	    				   json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
@@ -209,10 +211,10 @@ void RequestHandler::HandleFileRequest(const std::string_view target, http::verb
 	    		}
 	      }
       }
-*/
+
 }
-
-
+*/
+/*
 StringResponse RequestHandler::HandleJoinGameRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
 {
 	StringResponse resp;
@@ -254,8 +256,9 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
     response.keep_alive(keep_alive);
     return response;
  }
+*/
 
- http::response<http::file_body> MakeFileResponce(const std::filesystem::path& json_path, const std::string& mime_type)
+StaticFileResponce MakeFileResponce(const std::filesystem::path& json_path, const std::string& mime_type)
  {
     http::response<http::file_body> res;
     res.version(11);  // HTTP/1.1
@@ -276,7 +279,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
     res.prepare_payload();
     return res;
  }
- 
+/*
  StringResponse RequestHandler::HandleAuthRequest(const std::string& body, unsigned http_version, bool keep_alive)
      {
      	std::map<std::string, std::string> respMap;
@@ -391,7 +394,7 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
  	if(auth_token.empty() || !game_.HasSessionWithAuthInfo(auth_token))
 		{
  		StringResponse resp;
- 		if(auth_token.empty() || !IsValidAuthToken(auth_token, 32)/*(auth_token.size() != 32)*/)
+ 		if(auth_token.empty() || !IsValidAuthToken(auth_token, 32))
  			resp = MakeStringResponse(http::status::unauthorized,
  				    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
         																		  {"message", "Authorization header is missing"}}),
@@ -478,17 +481,6 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 
 	  		return resp;
 	  	}
-/*	  	std::string auth_token = GetAuthToken(auth_type);
-	  	if(auth_token.empty())
-	  	{
-	  	 //  	std::cout << "authToken is empty" << std::endl;
-	  		resp = MakeStringResponse(http::status::unauthorized,
-	  	 				    					json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
-	  	        																		  {"message", "Authorization header is required"}}),
-	  	   									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
-
-	  		return resp;
-	  	}*/
 	  	try{
 	  		int deltaTime = json_loader::ParseDeltaTimeRequest(body);
 	  		//std::cout << "HandleTickAction:" << deltaTime << std::endl;
@@ -505,5 +497,5 @@ StringResponse RequestHandler::MakeStringResponse(http::status status, std::stri
 
 	 return resp;
  }
-
+*/
 }  // namespace http_handler

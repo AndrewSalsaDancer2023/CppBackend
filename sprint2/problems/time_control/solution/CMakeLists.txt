@@ -38,6 +38,8 @@ add_executable(game_server
 	src/player_tokens.cpp
 	src/player_tokens.h
 	src/server_exceptions.h
+	src/api_handler.cpp
+	src/api_handler.h
 )
 target_link_libraries(game_server PRIVATE Threads::Threads CONAN_PKG::boost)
 target_include_directories(game_server PRIVATE CONAN_PKG::boost)

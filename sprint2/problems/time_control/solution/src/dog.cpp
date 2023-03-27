@@ -408,7 +408,7 @@ namespace model
 	                if(newPos.y < ((double)start.y - dS))
 	                {
 	                    newPos.y = ((double)start.y - dS);
-//	                    dog_info_.curr_speed = {0.0, 0.0};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -426,7 +426,7 @@ namespace model
 	                if(newPos.y > ((double)end.y + dS))
 	                {
 	                    newPos.y = ((double)end.y + dS);
-//	                    dog_info_.curr_speed = {0.0, 0.0};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -454,7 +454,7 @@ namespace model
 	                if(newPos.x < ((double)start.x - dS))
 	                {
 	                    newPos.x = ((double)start.x - dS);
-//	                    dog_info_.curr_speed = {0.0, 0.0};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
@@ -472,7 +472,7 @@ namespace model
 	                if(newPos.x > ((double)end.x + dS))
 	                {
 	                    newPos.x = ((double)end.x + dS);
-//	                    dog_info_.curr_speed = {0.0, 0.0};
+	                    dog_info_.curr_speed = {0.0, 0.0};
 	                }
 	        }
 	        dog_info_.curr_position = newPos;
