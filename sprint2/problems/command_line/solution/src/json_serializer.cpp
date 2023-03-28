@@ -67,19 +67,9 @@ namespace json_serializer {
 
    std::string GetPlayersDogInfoResponce(const std::vector<std::shared_ptr<model::Player>>& players)
    {
+//	   std::cout << "inside GetPlayersDogInfoResponce: players size:" << players.size() << std::endl;
 	   json::object resp_object;
 	   json::object players_object;
-
-	   const auto convertDirection =
-			   [](model::DogDirection& direction) -> std::string
-			      {
-		   	   	   std::map<model::DogDirection, std::string> dir{ {model::DogDirection::EAST, "R"},
-		   	   		   	   	   	   	   	   	   	   	   	   	   	   {model::DogDirection::WEST, "L"},
-																   {model::DogDirection::SOUTH, "D"},
-																   {model::DogDirection::NORTH,"U"} };
-		   	   	   auto itFind = dir.find(direction);
-		   	   	   return itFind->second;
-			      };
 
 	    for(auto& player : players)
 	  	{
@@ -101,12 +91,13 @@ namespace json_serializer {
 			dog_object["speed"] = speed_ar;
 
 			model::DogDirection dir = dog->GetDirection();
-			dog_object["dir"] = convertDirection(dir);
+			dog_object["dir"] = model::ConvertDogDirectionToString(dir);
 
 			players_object[std::to_string(player->GetId())] = dog_object;
 
 	  	}
 	    resp_object["players"] = players_object;
+//	    std::cout << "GetPlayersDogInfoResponce: json:" << json::serialize(resp_object) << std::endl;
 	  	return json::serialize(resp_object);
 
 

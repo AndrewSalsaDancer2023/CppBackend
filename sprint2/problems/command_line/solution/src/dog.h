@@ -3,7 +3,7 @@
 #include <memory>
 #include "model.h"
 #include <optional>
-
+//#include <iostream>
 namespace model {
 struct Point;
 class Map;
@@ -39,17 +39,19 @@ struct RoadInfo
     RoadInfo(size_t index, RoadType rdType):road_index(index), road_type(rdType)  {}
 };
 
+std::string ConvertDogDirectionToString(model::DogDirection direction);
+
 class DogNavigator {
 public:
     DogNavigator(const std::vector<model::Road>& roads) : roads_(roads)
     {
-        adjacent_roads_.reserve(roads.size());
+  //  	std::cout << "DogNavigator roads:" << roads.size() << std::endl;
+        adjacent_roads_ = std::vector<std::vector<RoadInfo>>(roads.size());
         FindAdjacentRoads();
 
         SetStartPositionFirstRoad();
     }
 public:
-    std::pair<float, float> GetPosition();
     void MoveDog(DogDirection direction, DogSpeed speed, int time);
     DogPos GetDogPos() { return  dog_info_;}
     DogPosition GetDogPosition() { return dog_info_.curr_position;}
