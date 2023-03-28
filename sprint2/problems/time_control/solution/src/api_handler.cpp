@@ -234,13 +234,14 @@ bool IsValidAuthToken(const std::string& token, size_t valid_size)
 
 StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
 {
+//    std::cout << "inside HandleGetGameState: " << std::endl;
 	if((method != http::verb::get) && (method != http::verb::head))
 	{
 		auto resp = MakeStringResponse(http::status::method_not_allowed,
 	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
 																  {"message", "Invalid method"}}),
 																	  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
-
+//            std::cout << "inside HandleGetGameState: invalidMethod" << std::endl;
 		return resp;
 	}
 	std::string auth_token = GetAuthToken(auth_type);
@@ -257,10 +258,10 @@ StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_vie
 			    				    					json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
 			           																		  {"message", "Player token has not been found"}}),
 			      									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
-
+//                std::cout << "inside HandleGetGameState: invalid token/session" << std::endl;
 		return resp;
    }
-
+//            std::cout << "inside HandleGetGameState: FindAllPlayersForAuthInfo" << std::endl;
 		auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
 		if(method == http::verb::get)
 		{

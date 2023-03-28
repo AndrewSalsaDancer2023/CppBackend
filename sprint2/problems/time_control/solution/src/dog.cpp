@@ -25,6 +25,20 @@ namespace
 namespace model
 {
     constexpr double dS = 0.4;
+
+    std::string ConvertDogDirectionToString(model::DogDirection direction)
+    {
+    	std::map<model::DogDirection, std::string> dir{ {model::DogDirection::EAST, "R"},
+    			   	   		   	   	   	   	   	   	   	 {model::DogDirection::WEST, "L"},
+    													 {model::DogDirection::SOUTH, "D"},
+    													 {model::DogDirection::NORTH,"U"} };
+
+    	if(auto itFind = dir.find(direction); itFind != dir.end())
+    		return itFind->second;
+
+    	return "U";
+    }
+
 	Dog::Dog(const model::Map *map) : map_(map)
 	{
 		direction_ = DogDirection::NORTH;
@@ -104,6 +118,7 @@ namespace model
 
 	void DogNavigator::FindAdjacentRoads()
 	{
+		std::cout << "DogNavigator::FindAdjacentRoads:" << std::endl;
 	    for(size_t i = 0; i < roads_.size(); ++i)
 	    {
 	        for(size_t j = i+1; j < roads_.size(); ++j)
@@ -118,10 +133,23 @@ namespace model
 
 	            if(road_type != RoadType::Parallel)
 	            {
+/*	            	std::cout << "FindAdjacentRoads size:" <<  adjacent_roads_.size() << std::endl;
+	            	std::cout << "FindAdjacentRoads i size:" <<  adjacent_roads_[i].size() << std::endl;
+	            	std::cout << "FindAdjacentRoads j size:" <<  adjacent_roads_[j].size() << std::endl;*/
 	                adjacent_roads_[i].push_back(RoadInfo(j,road_type));
 	                adjacent_roads_[j].push_back(RoadInfo(i,road_type));
 	            }
 	        }
+	    }
+
+	    for(size_t i = 0; i < roads_.size(); ++i)
+	    {
+	    	std::cout << "Road :" << i << " size:"  <<  adjacent_roads_[i].size() << std::endl;
+	    	for(size_t j = 0; j < adjacent_roads_[i].size(); ++j)
+	    	{
+	    		std::cout <<  adjacent_roads_[i][j].road_index << " ";
+	    	}
+	    	 std::cout << std::endl;
 	    }
 	}
 
@@ -483,7 +511,7 @@ namespace model
 	{
 		dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
-
+	    std::cout << "Start DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	    double dt = (double)time/1000;
 	    DogPosition newPos{0.0, 0.0};
 
@@ -510,6 +538,7 @@ namespace model
 	                FindNewPosCrossMovingVertical(road, direction, newPos);
 	            }
 	    }
+	    std::cout << "End DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	}
 
 
