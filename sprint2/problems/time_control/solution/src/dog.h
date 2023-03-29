@@ -24,8 +24,8 @@ struct DogSpeed
 struct DogPos
 {
     size_t current_road_index;
-    DogPosition curr_position{0, 0};
-    DogSpeed curr_speed{0, 0};
+    DogPosition curr_position{0.0, 0.0};
+    DogSpeed curr_speed{0.0, 0.0};
 };
 
 

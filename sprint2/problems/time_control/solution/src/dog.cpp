@@ -118,7 +118,7 @@ namespace model
 
 	void DogNavigator::FindAdjacentRoads()
 	{
-		std::cout << "DogNavigator::FindAdjacentRoads:" << std::endl;
+//		std::cout << "DogNavigator::FindAdjacentRoads:" << std::endl;
 	    for(size_t i = 0; i < roads_.size(); ++i)
 	    {
 	        for(size_t j = i+1; j < roads_.size(); ++j)
@@ -141,7 +141,7 @@ namespace model
 	            }
 	        }
 	    }
-
+/*
 	    for(size_t i = 0; i < roads_.size(); ++i)
 	    {
 	    	std::cout << "Road :" << i << " size:"  <<  adjacent_roads_[i].size() << std::endl;
@@ -150,7 +150,7 @@ namespace model
 	    		std::cout <<  adjacent_roads_[i][j].road_index << " ";
 	    	}
 	    	 std::cout << std::endl;
-	    }
+	    }*/
 	}
 
 	void DogNavigator::SetStartPositionFirstRoad()
@@ -373,6 +373,7 @@ namespace model
 	            newPos.y = (double)road.GetStart().y - dS;
 	        else
 	            newPos.y = (double)road.GetStart().y + dS;
+	        dog_info_.curr_speed = {0.0, 0.0};
 	    }
 
 	    dog_info_.curr_position = newPos;
@@ -410,6 +411,7 @@ namespace model
 	            newPos.x = (double)road.GetStart().x - dS;
 	        else
 	            newPos.x = (double)road.GetStart().x + dS;
+	        dog_info_.curr_speed = {0.0, 0.0};
 	    }
 
 	    dog_info_.curr_position = newPos;
@@ -511,7 +513,7 @@ namespace model
 	{
 		dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
-	    std::cout << "Start DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
+//	    std::cout << "Start DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	    double dt = (double)time/1000;
 	    DogPosition newPos{0.0, 0.0};
 
@@ -538,7 +540,7 @@ namespace model
 	                FindNewPosCrossMovingVertical(road, direction, newPos);
 	            }
 	    }
-	    std::cout << "End DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
+//	    std::cout << "End DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	}
 
 
