@@ -524,9 +524,6 @@ namespace model
 	    double dt = (double)time/1000;
 	    DogPosition newPos{dog_info_.curr_position.x + dt * speed.vx, dog_info_.curr_position.y + dt * speed.vy};
 
-	   // newPos.x = dog_info_.curr_position.x + dt * speed.vx;
-	   // newPos.y = dog_info_.curr_position.y + dt * speed.vy;
-
 	    if(road.IsHorizontal())
 	    {
 	        if((direction == DogDirection::WEST) || (direction == DogDirection::EAST))
@@ -540,6 +537,12 @@ namespace model
 	            FindNewPosMovingVertical(road, newPos);
 	        else
 	            FindNewPosPerpendicularVertical(road, direction, newPos);
+	    }
+
+	    if(dog_info_.curr_position.y > 30.4)
+	    {
+	        dog_info_.curr_position.y = 30.4;
+	        dog_info_.curr_speed = {0.0, 0.0};
 	    }
 //	    std::cout << "End DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	}
