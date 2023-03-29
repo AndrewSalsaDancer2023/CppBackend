@@ -23,7 +23,7 @@ struct DogSpeed
 
 struct DogPos
 {
-    size_t current_road_index;
+    size_t current_road_index{0};
     DogPosition curr_position{0.0, 0.0};
     DogSpeed curr_speed{0.0, 0.0};
 };
@@ -59,24 +59,24 @@ public:
     void SpawnDogInMap(bool spawn_in_random_point);
     void SetDogSpeed(const DogSpeed& speed) { dog_info_.curr_speed = speed;}
 private:
-    bool RoadsCrossed(const Road& road1, const Road& road2);
+    void FindNewPosMovingHorizontal(const model::Road& road, DogPosition& newPos);
+    void FindNewPosMovingVertical(const model::Road& road, DogPosition& newPos);
+    std::optional<size_t> FindNearestAdjacentRoad(const Point& edge_point, bool find_horizontal_road);
     void FindAdjacentRoads();
-    bool RoadsAdjacent(const Road& road1, const Road& road2);
     void SetStartPositionFirstRoad();
-    void SetStartPositionRandomRoad();
-    std::optional<size_t> FindNearestHorizontalCrossRoad(const DogPosition& newPos);
-    std::optional<size_t> FindNearestVerticalCrossRoad(const DogPosition& newPos);
-    std::optional<size_t> FindNearestAdjacentRoad(const Point& edge_point, bool is_horizontal_road);
-    void FindNewPosMovingHorizontal(const Road& road, DogDirection direction, DogPosition& newPos, DogSpeed speed);
-    void FindNewPosMovingVertical(const Road& road, DogDirection direction, DogPosition& newPos, DogSpeed speed);
-    void FindNewPosCrossMovingHorizontal(const Road& road, DogDirection direction, DogPosition& newPos);
-    void FindNewPosCrossMovingVertical(const Road& road, DogDirection direction, DogPosition& newPos);
+    bool RoadsCrossed(const model::Road& road1, const model::Road& road2);
+    bool RoadsAdjacent(const model::Road& road1, const model::Road& road2);
     std::optional<size_t> FindNearestAdjacentVerticalRoad(const DogPosition& edge_point);
+    std::optional<size_t> FindNearestVerticalCrossRoad(const DogPosition& newPos);
+    void FindNewPosPerpendicularHorizontal(const model::Road& road, DogDirection direction, DogPosition& newPos);
+    std::optional<size_t> FindNearestHorizontalCrossRoad(const DogPosition& newPos);
     std::optional<size_t> FindNearestAdjacentHorizontalRoad(const DogPosition& edge_point);
+    void FindNewPosPerpendicularVertical(const model::Road& road, DogDirection direction, DogPosition& newPos);
+	void SetStartPositionRandomRoad();
 private:
- const std::vector<model::Road>& roads_;
- std::vector<std::vector<RoadInfo>> adjacent_roads_;
- DogPos dog_info_;
+    const std::vector<model::Road>& roads_;
+    std::vector<std::vector<RoadInfo>> adjacent_roads_;
+    DogPos dog_info_;
  };
 
 class Dog

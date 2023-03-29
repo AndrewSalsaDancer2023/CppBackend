@@ -26,6 +26,11 @@ struct Point {
 	{
     	return (x == other.x) && (y == other.y);
 	}
+
+    bool operator !=(const Point& other)
+	{
+    	return (x != other.x) || (y != other.y);
+	}
     Coord x, y;
 };
 
