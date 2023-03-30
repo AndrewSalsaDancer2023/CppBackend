@@ -10,6 +10,7 @@
 #include <boost/asio/io_context.hpp>
 #include <cassert>
 #include "api_handler.h"
+#include "ticker.h"
 
 namespace net = boost::asio;
 
@@ -33,6 +34,12 @@ public:
     explicit RequestHandler(model::Game& game, net::io_context& ioc)
         : game_{game}, strand_(net::make_strand(ioc)) {
         api_handler_ = std::make_shared<ApiHandler>(game);
+        ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(1000),[&game](std::chrono::milliseconds ticks)
+        				{
+        					game.MoveDogs(ticks.count());
+        					std::cout << "Called ticker handler with count:" << ticks.count() << std::endl;
+        				});
+        ticker_->Start();
     }
 
     RequestHandler(const RequestHandler&) = delete;
@@ -140,6 +147,7 @@ private:
     Strand strand_;
     model::Game& game_;
     std::shared_ptr<ApiHandler> api_handler_;
+    std::shared_ptr<Ticker> ticker_;
 };
 
 class SyncWriteOStreamAdapter {
