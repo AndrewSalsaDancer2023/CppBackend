@@ -73,6 +73,7 @@ private:
     std::optional<size_t> FindNearestAdjacentHorizontalRoad(const DogPosition& edge_point);
     void FindNewPosPerpendicularVertical(const model::Road& road, DogDirection direction, DogPosition& newPos);
 	void SetStartPositionRandomRoad();
+	void CorrectDogPosition();
 private:
     const std::vector<model::Road>& roads_;
     std::vector<std::vector<RoadInfo>> adjacent_roads_;

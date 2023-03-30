@@ -6,6 +6,8 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <algorithm>
+
 namespace
 {
 	int GetRandowNumber(int minValue, int maxValue)
@@ -47,7 +49,6 @@ namespace model
 
 	void Dog::SetSpeed(model::DogDirection dir, double speed)
 	{
-		//std::cout << "Call Dog::SetSpeed:"<< std::endl;
 		std::map<model::DogDirection, DogSpeed> velMap{{DogDirection::EAST, {speed, 0}},
 														   {DogDirection::WEST, {-speed, 0}},
 														   {DogDirection::SOUTH, {0, speed}},
@@ -61,13 +62,10 @@ namespace model
 		direction_ = dir;
 		speed_ = findVel->second;
 		navigator_->SetDogSpeed(speed_);
-
-		//std::cout << "Dog::SetSpeed:" << (unsigned)direction_ << "vx:" << speed_.vx << "vy:" << speed_.vy  << std::endl;
 	}
 
 	void Dog::Move(int deltaTime)
 	{
-//		std::cout << "Move dog direction: " << (unsigned)direction_ << " vx:" << speed_.vx << " vy:" << speed_.vy  << std::endl;
 		navigator_->MoveDog(direction_, speed_, deltaTime);
 	}
 
@@ -118,7 +116,6 @@ namespace model
 
 	void DogNavigator::FindAdjacentRoads()
 	{
-//	    std::cout << "DogNavigator::FindAdjacentRoads:" << std::endl;
 	    for(size_t i = 0; i < roads_.size(); ++i)
 	    {
 	        for(size_t j = i+1; j < roads_.size(); ++j)
@@ -133,24 +130,11 @@ namespace model
 
 	            if(road_type != RoadType::Parallel)
 	            {
-	/*	            	std::cout << "FindAdjacentRoads size:" <<  adjacent_roads_.size() << std::endl;
-	                std::cout << "FindAdjacentRoads i size:" <<  adjacent_roads_[i].size() << std::endl;
-	                std::cout << "FindAdjacentRoads j size:" <<  adjacent_roads_[j].size() << std::endl;*/
 	                adjacent_roads_[i].push_back(RoadInfo(j,road_type));
 	                adjacent_roads_[j].push_back(RoadInfo(i,road_type));
 	            }
 	        }
 	    }
-/*
-	    for(size_t i = 0; i < roads_.size(); ++i)
-	    {
-	        std::cout << "Road :" << i << " size:"  <<  adjacent_roads_[i].size() << std::endl;
-	        for(size_t j = 0; j < adjacent_roads_[i].size(); ++j)
-	        {
-	            std::cout <<  adjacent_roads_[i][j].road_index << " ";
-	        }
-	         std::cout << std::endl;
-	    }*/
 	}
 
 	void DogNavigator::SetStartPositionFirstRoad()
@@ -387,6 +371,7 @@ namespace model
 	        {
 	            dog_info_.curr_position = newPos;
 	            dog_info_.current_road_index = *adjRoad;
+	            CorrectDogPosition();
 	            return;
 	        }
 	    }
@@ -395,6 +380,7 @@ namespace model
 	    {
 	        dog_info_.curr_position = newPos;
 	        dog_info_.current_road_index = *adjRoad;
+	        CorrectDogPosition();
 	        return;
 	    }
 
@@ -542,7 +528,6 @@ namespace model
 	        else
 	            FindNewPosPerpendicularVertical(road, direction, newPos);
 	    }
-
 //	    std::cout << "end road:" << dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y
 //	    << " vx:" << dog_info_.curr_speed.vx  << " vy:" << dog_info_.curr_speed.vy << std::endl;
 	}
@@ -551,5 +536,25 @@ namespace model
 	{
 		 if(spawn_in_random_point)
 			 SetStartPositionRandomRoad();
+	}
+
+	void DogNavigator::CorrectDogPosition()
+	{
+		const auto& road = roads_[dog_info_.current_road_index];
+
+		auto [x_min, x_max] = std::minmax({road.GetStart().x, road.GetEnd().x});
+		auto [y_min, y_max] = std::minmax({road.GetStart().y, road.GetEnd().y});
+
+		if(dog_info_.curr_position.x < ((double)x_min - dS))
+			dog_info_.curr_position.x = (double)x_min - dS;
+
+		if(dog_info_.curr_position.x > ((double)x_max + dS))
+			dog_info_.curr_position.x = (double)x_max + dS;
+
+		if(dog_info_.curr_position.y < ((double)y_min - dS))
+			dog_info_.curr_position.y = (double)y_min - dS;
+
+		if(dog_info_.curr_position.y > ((double)y_max + dS))
+			dog_info_.curr_position.y = (double)y_max + dS;
 	}
 }
