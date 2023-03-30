@@ -225,7 +225,7 @@ namespace model
 
 	    if(start.x > end.x)
 	        std::swap(start, end);
-
+/*
 	    std::optional<size_t> adjRoad;
 	    if(newPos.x < (double)start.x)
 	    {
@@ -243,7 +243,7 @@ namespace model
 	        dog_info_.curr_position = newPos;
 	        return;
 	    }
-
+*/
 	    double minXLeft = (double)start.x - dS;
 	    double maxXRight = (double)end.x + dS;
 
@@ -268,7 +268,7 @@ namespace model
 
 	    if(start.y > end.y)
 	        std::swap(start, end);
-
+/*
 	    std::optional<size_t> adjRoad;
 	    if(newPos.y < (double)start.y)
 	    {
@@ -286,7 +286,7 @@ namespace model
 	        dog_info_.curr_position = newPos;
 	        return;
 	    }
-
+*/
 	    double minYDown = (double)start.y - dS;
 	    double maxYUp = (double)end.y + dS;
 
@@ -539,11 +539,6 @@ namespace model
 	            FindNewPosPerpendicularVertical(road, direction, newPos);
 	    }
 
-	    if(dog_info_.curr_position.y > 30.4)
-	    {
-	        dog_info_.curr_position.y = 30.4;
-	        dog_info_.curr_speed = {0.0, 0.0};
-	    }
 //	    std::cout << "End DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	}
 
