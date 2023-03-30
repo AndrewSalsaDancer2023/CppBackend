@@ -546,15 +546,24 @@ namespace model
 		auto [y_min, y_max] = std::minmax({road.GetStart().y, road.GetEnd().y});
 
 		if(dog_info_.curr_position.x < ((double)x_min - dS))
+		{
 			dog_info_.curr_position.x = (double)x_min - dS;
-
+			dog_info_.curr_speed = {0.0, 0.0};
+		}
 		if(dog_info_.curr_position.x > ((double)x_max + dS))
+		{
 			dog_info_.curr_position.x = (double)x_max + dS;
-
+			dog_info_.curr_speed = {0.0, 0.0};
+		}
 		if(dog_info_.curr_position.y < ((double)y_min - dS))
+		{
 			dog_info_.curr_position.y = (double)y_min - dS;
-
+			dog_info_.curr_speed = {0.0, 0.0};
+		}
 		if(dog_info_.curr_position.y > ((double)y_max + dS))
+		{
 			dog_info_.curr_position.y = (double)y_max + dS;
+			dog_info_.curr_speed = {0.0, 0.0};
+		}
 	}
 }
