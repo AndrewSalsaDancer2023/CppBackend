@@ -67,7 +67,7 @@ namespace model
 
 	void Dog::Move(int deltaTime)
 	{
-	//	std::cout << "Move dog direction: " << (unsigned)direction_ << " vx:" << speed_.vx << " vy:" << speed_.vy  << std::endl;
+//		std::cout << "Move dog direction: " << (unsigned)direction_ << " vx:" << speed_.vx << " vy:" << speed_.vy  << std::endl;
 		navigator_->MoveDog(direction_, speed_, deltaTime);
 	}
 
@@ -522,6 +522,10 @@ namespace model
 	    const auto& road = roads_[dog_info_.current_road_index];
 //	    std::cout << "Start DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
 	    double dt = (double)time/1000;
+
+//	    std::cout << "start road:" << dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y
+//	    	    << " vx:" << dog_info_.curr_speed.vx  << " vy:" << dog_info_.curr_speed.vy << std::endl;
+
 	    DogPosition newPos{dog_info_.curr_position.x + dt * speed.vx, dog_info_.curr_position.y + dt * speed.vy};
 
 	    if(road.IsHorizontal())
@@ -539,7 +543,8 @@ namespace model
 	            FindNewPosPerpendicularVertical(road, direction, newPos);
 	    }
 
-//	    std::cout << "End DogNavigator::MoveDog road:" <<dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y << std::endl;
+//	    std::cout << "end road:" << dog_info_.current_road_index << " x:" << dog_info_.curr_position.x << " y:" << dog_info_.curr_position.y
+//	    << " vx:" << dog_info_.curr_speed.vx  << " vy:" << dog_info_.curr_speed.vy << std::endl;
 	}
 
 	void DogNavigator::SpawnDogInMap(bool spawn_in_random_point)
