@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.11)
 project(game_server CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CONAN_DISABLE_CHECK_COMPILER TRUE CACHE BOOL "" FORCE )
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 conan_basic_setup(TARGETS)
 
-find_package(Boost 1.78.0 REQUIRED)
+find_package(Boost 1.77.0 REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
@@ -40,6 +41,7 @@ add_executable(game_server
 	src/server_exceptions.h
 	src/api_handler.cpp
 	src/api_handler.h
+	src/ticker.h
 )
 target_link_libraries(game_server PRIVATE Threads::Threads CONAN_PKG::boost)
 target_include_directories(game_server PRIVATE CONAN_PKG::boost)

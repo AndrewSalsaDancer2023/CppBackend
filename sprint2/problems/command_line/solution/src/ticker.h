@@ -12,9 +12,11 @@
 #include <chrono>
 
 namespace net = boost::asio;
+namespace sys = boost::system;
 
 namespace http_handler {
-namespace http = beast::http;
+
+//namespace http = beast::http;
 
 //using Strand = boost::asio::strand<boost::asio::io_context::executor_type>;
 //using StaticFileResponce = http::response<http::file_body>;

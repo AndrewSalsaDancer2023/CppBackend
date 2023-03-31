@@ -26,6 +26,11 @@ struct Point {
 	{
     	return (x == other.x) && (y == other.y);
 	}
+
+    bool operator !=(const Point& other)
+	{
+    	return (x != other.x) || (y != other.y);
+	}
     Coord x, y;
 };
 
@@ -223,9 +228,10 @@ public:
     double GetDefaultDogSpeed() { return default_dog_speed_;}
     void MoveDogs(int deltaTime);
     void SetTickPeriod(int period) { tick_period_ = period; }
-    void SetSpawnInRondomPoint(bool random_spawn) { spawn_in_random_points_ = random_spawn; }
+    void SetSpawnInRandomPoint(bool random_spawn) { spawn_in_random_points_ = random_spawn; }
     int GetTickPeriod() { return tick_period_;}
     bool GetSpawnInRandomPoint() { return spawn_in_random_points_;}
+    size_t GetNumPlayersInAllSessions();
 private:
     std::shared_ptr<GameSession> FindSession(const std::string& map_name);
 private:

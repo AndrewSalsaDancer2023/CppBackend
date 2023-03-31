@@ -18,7 +18,7 @@ struct Args {
     int tick_period{-1};
     std::string config_file;
     std::string www_root;    
-    bool random_spawn_points{false};
+    bool spawn_random_points{false};
 };
 
 namespace {
@@ -47,7 +47,7 @@ void RunWorkers(unsigned num_threads, const Fn& fn) {
         ("tick-period,t", po::value(&tick_period)->value_name("milliseconds"s), " set tick period")  //
         ("config-file,c", po::value(&args.config_file)->value_name("file"s), "set config file path") //
         ("www-root,w", po::value(&args.www_root)->value_name("dir"s), "set static files root") //        
-	("randomize-spawn-points", "spawn dogs at random positions");
+		("randomize-spawn-points", "spawn dogs at random positions");
         
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -71,46 +71,43 @@ void RunWorkers(unsigned num_threads, const Fn& fn) {
 	 args.tick_period = std::stoi(tick_period);
     }
     
-    args.random_spawn_points = vm.contains("randomize-spawn-points"s) ? true : false;
+    args.spawn_random_points = vm.contains("randomize-spawn-points"s) ? true : false;
 
     return args;
 } 
 }  // namespace
 
 int main(int argc, const char* argv[]) {
-/*    if (argc != 3) {
-        std::cerr << "Usage: game_server <game-config-json> <content-base-dir-json>"sv << std::endl;
-        return EXIT_FAILURE;
-    }*/
 	std::optional<Args> args;
        if (args = ParseCommandLine(argc, argv)) {
             /* Сюда попадём, когда ParseCommandLine вернёт непустой optional */
-		std::cout << "tick_period:" << args->tick_period << "  config_file:" << args->config_file << "  www_root:" << args->www_root << "  random_spawn_points:" << args->random_spawn_points << std::endl;
+		std::cout << "tick_period:" << args->tick_period << "  config_file:" << args->config_file << "  www_root:" << args->www_root << "  spawn_random_points:" << args->spawn_random_points << std::endl;
         }
 	else
 		return EXIT_FAILURE;
 	
     try {
         // 1. Загружаем карту из файла и построить модель игры
-        model::Game game = json_loader::LoadGame(args->config_file, args->www_root);//argv[1], argv[2]);
+        model::Game game = json_loader::LoadGame(args->config_file, args->www_root);
+        if(args->tick_period > 0)
+        	game.SetTickPeriod(args->tick_period);
 
+        game.SetSpawnInRandomPoint(args->spawn_random_points);
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);
 
         // 3. Добавляем асинхронный обработчик сигналов SIGINT и SIGTERM
-	// Подписываемся на сигналы и при их получении завершаем работу сервера
-	net::signal_set signals(ioc, SIGINT, SIGTERM);
-	signals.async_wait([&ioc](const sys::error_code& ec, [[maybe_unused]] int signal_number) {
-        	if (!ec) {
-	            ioc.stop();
-	            event_logger::LogServerEnd("server exited", EXIT_SUCCESS);
-	        }
-	});
+        // Подписываемся на сигналы и при их получении завершаем работу сервера
+        net::signal_set signals(ioc, SIGINT, SIGTERM);
+        signals.async_wait([&ioc](const sys::error_code& ec, [[maybe_unused]] int signal_number) {
+        		if (!ec) {
+        			ioc.stop();
+        			event_logger::LogServerEnd("server exited", EXIT_SUCCESS);
+        		}
+        });
 
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
-       // http_handler::RequestHandler handler{game, ioc};
-
         auto handler = std::make_shared<http_handler::RequestHandler>(game, ioc);
   //      http_server::ServeHttp(ioc, {address, port}, [&handler](auto&& req, auto&& send)
   //      { handler->operator()(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send)); });

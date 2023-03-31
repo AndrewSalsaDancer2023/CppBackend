@@ -7,13 +7,13 @@
 namespace model
 {
 
-Player::Player(unsigned int id, const std::string& name, const std::string& token, const model::Map* map)
+Player::Player(unsigned int id, const std::string& name, const std::string& token, const model::Map* map, bool spawn_dog_in_random_point)
    	  : id_(id), name_(name), token_(token)
 {
-	dog_ = std::make_shared<Dog>(map);
+	dog_ = std::make_shared<Dog>(map, spawn_dog_in_random_point);
 }
 
-std::shared_ptr<Player> GameSession::AddPlayer(const std::string player_name, const model::Map* map)
+std::shared_ptr<Player> GameSession::AddPlayer(const std::string player_name, const model::Map* map, bool spawn_dog_in_random_point)
 {
 
  auto itFind = std::find_if(players_.begin(), players_.end(), [&player_name](std::shared_ptr<Player>& player){
@@ -25,7 +25,7 @@ std::shared_ptr<Player> GameSession::AddPlayer(const std::string player_name, co
 	
    PlayerTokens tk;
    auto token = tk.GetToken();
-   auto player = std::make_shared<Player>(player_id, player_name, token, map);
+   auto player = std::make_shared<Player>(player_id, player_name, token, map, spawn_dog_in_random_point);
 
 //   player->GetDog()->PlaceToMap();
 

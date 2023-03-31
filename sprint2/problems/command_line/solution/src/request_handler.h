@@ -10,7 +10,7 @@
 #include <boost/asio/io_context.hpp>
 #include <cassert>
 #include "api_handler.h"
-#include "ticker.h"
+//#include "ticker.h"
 
 namespace net = boost::asio;
 
@@ -33,13 +33,16 @@ class RequestHandler: public std::enable_shared_from_this<RequestHandler> {
 public:
     explicit RequestHandler(model::Game& game, net::io_context& ioc)
         : game_{game}, strand_(net::make_strand(ioc)) {
-        api_handler_ = std::make_shared<ApiHandler>(game);
-        ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(1000),[&game](std::chrono::milliseconds ticks)
-        				{
-        					game.MoveDogs(ticks.count());
-        					std::cout << "Called ticker handler with count:" << ticks.count() << std::endl;
-        				});
+        api_handler_ = std::make_shared<ApiHandler>(game, strand_);
+/*        if(game_.GetTickPeriod() > 0)
+        {
+        ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(game_.GetTickPeriod()),[this](std::chrono::milliseconds ticks)
+        			{
+        				game_.MoveDogs(ticks.count());
+        				std::cout << "Called ticker handler with count:" << ticks.count() << std::endl;
+                	});
         ticker_->Start();
+        }*/
     }
 
     RequestHandler(const RequestHandler&) = delete;
@@ -95,7 +98,7 @@ public:
     		                target.remove_prefix(mapPrefix.size());
     		                if(target.empty())
     		                {
-    		                    resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), req.version(), req.keep_alive());
+    		                    resp = MakeStringResponse(http::status::ok, json_serializer::GetMapListResponce(game_), req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
     		                }
     		                else
     		                {
@@ -103,11 +106,11 @@ public:
     		                    const auto& responce = json_serializer::GetMapContentResponce(game_, {target.begin(), target.end()});
     		                    if(!responce.empty())
     		                    {
-    		                        resp = MakeStringResponse(http::status::ok, responce, req.version(), req.keep_alive());
+    		                        resp = MakeStringResponse(http::status::ok, responce, req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
     		                    }
     		                    else
     		                    {
-    		                        resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), req.version(), req.keep_alive());
+    		                        resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
     		                    }
     		                }
     		                send(std::move(resp));
@@ -147,7 +150,7 @@ private:
     Strand strand_;
     model::Game& game_;
     std::shared_ptr<ApiHandler> api_handler_;
-    std::shared_ptr<Ticker> ticker_;
+//    std::shared_ptr<Ticker> ticker_;
 };
 
 class SyncWriteOStreamAdapter {

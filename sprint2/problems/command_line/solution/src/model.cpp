@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cmath>
-
+//#include <iostream>
 
 namespace model {
 using namespace std::literals;
@@ -52,25 +52,36 @@ std::shared_ptr<GameSession> Game::FindSession(const std::string& map_name)
 	return res;
 }
 
+size_t Game::GetNumPlayersInAllSessions()
+{
+//size_t GetNumPlayers() { return players.size();}
+	size_t players_coutner = 0;
+		std::for_each(sessions_.begin(), sessions_.end(),[&players_coutner](std::shared_ptr<GameSession>& session){
+			players_coutner += session->GetNumPlayers();
+		});
+
+	return players_coutner;
+}
+
+
 Game::PlayerAuthInfo Game::AddPlayer(const std::string& map_id, const std::string& player_name) {
     const Map* mapToAdd = FindMap(Map::Id(map_id));
-
-//    if(!mapToAdd)
-//	    throw MapNotFoundException();
 
    if(player_name.empty()) 
 	    throw EmptyNameException();
 
    if(!mapToAdd)
 	    throw MapNotFoundException();
-
+   //std::cout << "Game::AddPlayer id: " << map_id << "player name:" << player_name  << std::endl;
     std::shared_ptr<GameSession> session = FindSession(map_id);
     if(!session)
+    {
     	session = std::make_shared<GameSession>(map_id);
-    
-    auto player = session->AddPlayer(player_name, mapToAdd);
-    sessions_.push_back(session);
-    
+//    	std::cout << "create session: " << map_id  << std::endl;
+    	sessions_.push_back(session);
+    }
+    auto player = session->AddPlayer(player_name, mapToAdd, spawn_in_random_points_);
+//    std::cout << "sessions size: " << sessions_.size() << std::endl;
     return {player->GetToken(), player->GetId()};
 }
 
@@ -124,7 +135,9 @@ std::shared_ptr<GameSession> Game::GetSessionWithAuthInfo(const std::string& aut
 
 void Game::MoveDogs(int deltaTime)
 {
+//	std::cout << "MoveDogs num sessions: " << sessions_.size() << std::endl;
 	std::for_each(sessions_.begin(), sessions_.end(),[deltaTime](std::shared_ptr<GameSession>& session){
+//		std::cout << "in lambda MoveDogs: " << deltaTime << std::endl;
 		session->MoveDogs(deltaTime);
 	});
 }
