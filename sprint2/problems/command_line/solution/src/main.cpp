@@ -1,13 +1,13 @@
 #include "sdk.h"
 #include <boost/program_options.hpp>
 #include <boost/asio/io_context.hpp>
-#include <iostream>
+//#include <iostream>
 #include <thread>
 #include <boost/asio/signal_set.hpp>
-#include "json_loader.h"
-#include "json_serializer.h"
+//#include "json_loader.h"
+//#include "json_serializer.h"
 #include "request_handler.h"
-#include <filesystem>
+//#include <filesystem>
 #include "event_logger.h"
 
 using namespace std::literals;
@@ -79,11 +79,13 @@ void RunWorkers(unsigned num_threads, const Fn& fn) {
 
 int main(int argc, const char* argv[]) {
 	std::optional<Args> args;
-       if (args = ParseCommandLine(argc, argv)) {
+//       if (args = ParseCommandLine(argc, argv)) {
             /* Сюда попадём, когда ParseCommandLine вернёт непустой optional */
-		std::cout << "tick_period:" << args->tick_period << "  config_file:" << args->config_file << "  www_root:" << args->www_root << "  spawn_random_points:" << args->spawn_random_points << std::endl;
-        }
-	else
+		//std::cout << "tick_period:" << args->tick_period << "  config_file:" << args->config_file << "  www_root:" << args->www_root << "  spawn_random_points:" << args->spawn_random_points << std::endl;
+        //}
+//	else
+	 args = ParseCommandLine(argc, argv);
+	 if(!args)
 		return EXIT_FAILURE;
 	
     try {
@@ -109,15 +111,12 @@ int main(int argc, const char* argv[]) {
 
         // 4. Создаём обработчик HTTP-запросов и связываем его с моделью игры
         auto handler = std::make_shared<http_handler::RequestHandler>(game, ioc);
-  //      http_server::ServeHttp(ioc, {address, port}, [&handler](auto&& req, auto&& send)
-  //      { handler->operator()(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send)); });
 
         // 5. Запустить обработчик HTTP-запросов, делегируя их обработчику запросов
         const auto address = net::ip::make_address("0.0.0.0");
         constexpr net::ip::port_type port = 8080;
         
         http_server::ServeHttp(ioc, {address, port}, [&handler](auto&& req, auto&& send) {
-            //handler(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
         	handler->operator()(std::forward<decltype(req)>(req), std::forward<decltype(send)>(send));
         });
         

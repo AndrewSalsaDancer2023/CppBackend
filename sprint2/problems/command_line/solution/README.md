@@ -64,6 +64,9 @@ docker run --rm -p 80:8080 my_http_server
 В папке `build` выполнить команду
 ```sh
 bin/game_server ../data/config.json ../static/
+
+sudo docker run --rm -p 80:8080 my_http_server
+http://127.0.0.1/game.html
 ```
 После этого можно открыть в браузере:
 * http://127.0.0.1:8080/api/v1/maps для получения списка карт и
