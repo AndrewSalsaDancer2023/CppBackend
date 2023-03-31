@@ -10,7 +10,6 @@
 #include <boost/asio/io_context.hpp>
 #include <cassert>
 #include "api_handler.h"
-//#include "ticker.h"
 
 namespace net = boost::asio;
 
@@ -131,9 +130,12 @@ public:
     					        basePath += pathTrail;
 
     					        try{
+    					        	auto first_tick = std::chrono::steady_clock::now();
     					        	auto fileResp = MakeFileResponce(basePath, mimeType);
     					        	send(std::move(fileResp));
-    					        	event_logger::LogServerRespondSend(1000, static_cast<unsigned>(http::status::ok), mimeType);
+    					        	auto last_tick = std::chrono::steady_clock::now();
+    					        	auto time_delta = std::chrono::duration_cast<std::chrono::microseconds>(last_tick - first_tick);
+    					        	event_logger::LogServerRespondSend(time_delta.count(), static_cast<unsigned>(http::status::ok), mimeType);
     					        }
     					        catch(const std::filesystem::filesystem_error& ex)
     					        {
