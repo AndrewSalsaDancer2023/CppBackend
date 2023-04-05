@@ -40,7 +40,6 @@ protected:
                           });
     }
 
-protected:
     using HttpRequest = http::request<http::string_body>;
 
     ~SessionBase() = default;
@@ -53,7 +52,6 @@ private:
     virtual void HandleRequest(HttpRequest&& request) = 0;
     
     virtual std::shared_ptr<SessionBase> GetSharedThis() = 0;    
-private:
     // tcp_stream содержит внутри себя сокет и добавляет поддержку таймаутов
     beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
@@ -82,7 +80,7 @@ private:
     std::shared_ptr<SessionBase> GetSharedThis() override {
         return this->shared_from_this();
     }        
-private:
+
     RequestHandler request_handler_;
 };
 
@@ -150,19 +148,18 @@ private:
         std::make_shared<Session<RequestHandler>>(std::move(socket), request_handler_)->Run();
     }
 
-private:
     net::io_context& ioc_;
     tcp::acceptor acceptor_;
     RequestHandler request_handler_;
 };
 
-template <typename RequestHandler>
-void ServeHttp(net::io_context& ioc, const tcp::endpoint& endpoint, RequestHandler&& handler) {
-    // При помощи decay_t исключим ссылки из типа RequestHandler,
-    // чтобы Listener хранил RequestHandler по значению
-    using MyListener = Listener<std::decay_t<RequestHandler>>;
+	template <typename RequestHandler>
+	void ServeHttp(net::io_context& ioc, const tcp::endpoint& endpoint, RequestHandler&& handler) {
+		// При помощи decay_t исключим ссылки из типа RequestHandler,
+		// чтобы Listener хранил RequestHandler по значению
+		using MyListener = Listener<std::decay_t<RequestHandler>>;
 
-    std::make_shared<MyListener>(ioc, endpoint, std::forward<RequestHandler>(handler))->Run();
-}
+		std::make_shared<MyListener>(ioc, endpoint, std::forward<RequestHandler>(handler))->Run();
+	}
 
 }  // namespace http_server

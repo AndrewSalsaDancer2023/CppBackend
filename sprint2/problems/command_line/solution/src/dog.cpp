@@ -23,7 +23,7 @@ namespace
 namespace model
 {
     constexpr double dS = 0.4;
-
+    constexpr int millisescondsInSecond = 1000;
     std::string ConvertDogDirectionToString(model::DogDirection direction)
     {
     	std::map<model::DogDirection, std::string> dir{ {model::DogDirection::EAST, "R"},
@@ -157,41 +157,7 @@ namespace model
 			dog_info_.curr_position = DogPosition(start.x, GetRandowNumber(start.y, end.y));
 		}
 	}
-/*
-	std::optional<size_t> DogNavigator::FindNearestAdjacentRoad(const Point& edge_point, bool find_horizontal_road)
-	{
-	    std::optional<size_t> res;
 
-	    const auto& adj_roads = adjacent_roads_[dog_info_.current_road_index];
-	    for(const auto& road_info : adj_roads)
-	    {
-	        if(road_info.road_type != RoadType::Adjacent)
-	            continue;
-	        const auto& adj_road = roads_[road_info.road_index];
-
-	        if((adj_road.GetStart() != edge_point) && (adj_road.GetEnd() != edge_point))
-	                return res;
-	        bool findRoad =  false;
-	        if(find_horizontal_road)
-	        {
-	             if((adj_road.GetStart().y == edge_point.y) || (adj_road.GetEnd().y == edge_point.y))
-	                 findRoad =  true;
-	        }
-	        else
-	        {
-	            if((adj_road.GetStart().x == edge_point.x) || (adj_road.GetEnd().x == edge_point.x))
-	                findRoad =  true;
-	        }
-	        if(findRoad)
-	        {
-	            res = road_info.road_index;
-	            return res;
-	        }
-	    }
-
-	    return res;
-	}
-*/
 	void DogNavigator::FindNewPosMovingHorizontal(const model::Road& road, DogPosition& newPos)
 	{
 	    auto start = road.GetStart();
@@ -450,7 +416,7 @@ namespace model
 	{
 	    dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
-	    double dt = (double)time/1000;
+	    double dt = (double)time/millisescondsInSecond;
 
 	    DogPosition newPos{dog_info_.curr_position.x + dt * speed.vx, dog_info_.curr_position.y + dt * speed.vy};
 

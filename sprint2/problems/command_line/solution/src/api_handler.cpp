@@ -10,6 +10,34 @@ const std::string state_endpoint = "/api/v1/game/state";
 const std::string action_endpoint = "/api/v1/game/player/action";
 const std::string tick_endpoint = "/api/v1/game/tick";
 
+const std::map<std::string, std::string> onlyPostMethodAllowedResp
+{ {"code", "invalidMethod"},{"message", "Only POST method is expected"}};
+
+const std::map<std::string, std::string> joinGameReqParseError
+ { {"code", "invalidArgument"}, {"message", "Join game request parse error"}};
+
+const std::map<std::string, std::string> invalidNameResp
+{ {"code", "invalidArgument"}, {"message", "Invalid name"}};
+
+const std::map<std::string, std::string> invaliMethodResp
+{ {"code", "invalidMethod"}, {"message", "Invalid method"}};
+
+const std::map<std::string, std::string> authHeaderMissingResp
+{ {"code", "invalidToken"}, {"message", "Authorization header is missing"}};
+
+const std::map<std::string, std::string> playerTokenNotFoundResp
+{ {"code", "unknownToken"}, {"message", "Player token has not been found"}};
+
+const std::map<std::string, std::string> authHeaderRequiredResp
+{ {"code", "invalidToken"}, {"message", "Authorization header is required"}};
+
+const std::map<std::string, std::string> invalidEndpointResp
+{ {"code", "badRequest"}, {"message", "Invalid endpoint"}};
+
+const std::map<std::string, std::string> failedToParseTickResp
+{ {"code", "invalidArgument"}, {"message", "Failed to parse tick request JSON"}};
+
+
 std::string GetAuthToken(std::string_view auth)
 {
 	std::string_view prefix = "Bearer"sv;
@@ -111,14 +139,16 @@ StringResponse ApiHandler::HandleJoinGameRequest(http::verb method, std::string_
     		resp = MakeStringResponse(http::status::method_not_allowed,""sv,
     								  http_version, keep_alive,
 									  ContentType::APPLICATION_JSON,
-									  {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
+									  {{http::field::cache_control, "no-cache"sv},
+									   {http::field::allow, HeaderType::ALLOW_POST}});
     	}
     	else
     	{
     		resp = MakeStringResponse(http::status::method_not_allowed,
-		    					       json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},{"message", "Only POST method is expected"}}),
+		    					       json_serializer::MakeMappedResponce(onlyPostMethodAllowedResp),
 									   http_version, keep_alive, ContentType::APPLICATION_JSON,
-									   {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_POST}});
+									   {{http::field::cache_control, "no-cache"sv},
+									    {http::field::allow, HeaderType::ALLOW_POST}});
     	}
 
 	return resp;
@@ -134,15 +164,18 @@ StringResponse ApiHandler::HandleAuthRequest(const std::string& body, unsigned h
     	catch(std::exception& e)
     	{
     		auto resp = MakeStringResponse(http::status::bad_request,
-    		    						   json_serializer::MakeMappedResponce({ {"code", "invalidArgument"}, {"message", "Join game request parse error"}}),
-										   http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+    		    						   json_serializer::MakeMappedResponce(joinGameReqParseError),
+										   http_version, keep_alive, ContentType::APPLICATION_JSON,
+										   {{http::field::cache_control, "no-cache"sv}});
     		return resp;
     	}
     	try
     	{
     		auto [token, playerId] = game_.AddPlayer(respMap["mapId"], respMap["userName"]);
-    		auto resp = MakeStringResponse(http::status::ok, json_serializer::MakeAuthResponce(token, playerId), http_version,
-    									    keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+    		auto resp = MakeStringResponse(http::status::ok,
+    									   json_serializer::MakeAuthResponce(token, playerId), http_version,
+    									   keep_alive, ContentType::APPLICATION_JSON,
+										   {{http::field::cache_control, "no-cache"sv}});
 
     		if((game_.GetNumPlayersInAllSessions() == 1) && ticker_)
     		{
@@ -153,15 +186,17 @@ StringResponse ApiHandler::HandleAuthRequest(const std::string& body, unsigned h
     	catch(MapNotFoundException& e)
     	{
     	     cout << e.what() << std::endl;
-    	     auto resp = MakeStringResponse(http::status::not_found, json_serializer::MakeMapNotFoundResponce(), http_version, keep_alive,
-    	    		 	 	 	 	 	 	ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+    	     auto resp = MakeStringResponse(http::status::not_found,
+    	    		 	 	 	 	 	 	json_serializer::MakeMapNotFoundResponce(),
+											http_version, keep_alive,
+    	    		 	 	 	 	 	 	ContentType::APPLICATION_JSON,
+											{{http::field::cache_control, "no-cache"sv}});
     	     return resp;
     	}
     	catch(EmptyNameException& e)
     	{
             auto resp = MakeStringResponse(http::status::bad_request,
-            							    json_serializer::MakeMappedResponce({ {"code", "invalidArgument"},
-				  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  {"message", "Invalid name"}}),
+            							    json_serializer::MakeMappedResponce(invalidNameResp),
             								http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
    	        return resp;
     	}
@@ -172,9 +207,10 @@ StringResponse ApiHandler::HandleGetPlayersRequest(http::verb method, std::strin
    if((method != http::verb::get) && (method != http::verb::head))
     {
 	    	auto resp = MakeStringResponse(http::status::method_not_allowed,
-    		    	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
-    		    																  {"message", "Invalid method"}}),
-											http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
+    		    	    					json_serializer::MakeMappedResponce(invaliMethodResp),
+											http_version, keep_alive, ContentType::APPLICATION_JSON,
+											{{http::field::cache_control, "no-cache"sv},
+											 {http::field::allow, HeaderType::ALLOW_HEADERS}});
 	    	return resp;
     }
 
@@ -184,18 +220,18 @@ StringResponse ApiHandler::HandleGetPlayersRequest(http::verb method, std::strin
 	if(auth_token.empty())
 	{
 		auto resp = MakeStringResponse(http::status::unauthorized,
-	  		    					   json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
-        																	 {"message", "Authorization header is missing"}}),
-																			  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	  		    					   json_serializer::MakeMappedResponce(authHeaderMissingResp),
+									   http_version, keep_alive, ContentType::APPLICATION_JSON,
+									   {{http::field::cache_control, "no-cache"sv}});
 
 		return resp;
 	}
 	if(!game_.HasSessionWithAuthInfo(auth_token))
 	{
 		auto resp = MakeStringResponse(http::status::unauthorized,
-									   json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
-										        						     {"message", "Player token has not been found"}}),
-										http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+									   json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
+										http_version, keep_alive, ContentType::APPLICATION_JSON,
+										{{http::field::cache_control, "no-cache"sv}});
 		return resp;
 	}
 
@@ -225,9 +261,10 @@ StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_vie
 	if((method != http::verb::get) && (method != http::verb::head))
 	{
 		auto resp = MakeStringResponse(http::status::method_not_allowed,
-	    					json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
-																  {"message", "Invalid method"}}),
-																	  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}, {http::field::allow, HeaderType::ALLOW_HEADERS}});
+	    					json_serializer::MakeMappedResponce(invaliMethodResp),
+							http_version, keep_alive, ContentType::APPLICATION_JSON,
+							{{http::field::cache_control, "no-cache"sv},
+							 {http::field::allow, HeaderType::ALLOW_HEADERS}});
 		return resp;
 	}
 	std::string auth_token = GetAuthToken(auth_type);
@@ -236,14 +273,14 @@ StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_vie
 		StringResponse resp;
 		if(auth_token.empty() || !IsValidAuthToken(auth_token, 32)/*(auth_token.size() != 32)*/)
 			resp = MakeStringResponse(http::status::unauthorized,
-	 		    					  json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
-       																		{"message", "Authorization header is missing"}}),
-  									  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	 		    					  json_serializer::MakeMappedResponce(authHeaderMissingResp),
+  									  http_version, keep_alive, ContentType::APPLICATION_JSON,
+									  {{http::field::cache_control, "no-cache"sv}});
 		else
 			resp = MakeStringResponse(http::status::unauthorized,
-			    				    					json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
-			           																		  {"message", "Player token has not been found"}}),
-			      									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+			    				      json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
+			      					  http_version, keep_alive, ContentType::APPLICATION_JSON,
+									  {{http::field::cache_control, "no-cache"sv}});
 		return resp;
    }
 
@@ -265,9 +302,9 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
 	if(method != http::verb::post)
 	{
 		auto resp = MakeStringResponse(http::status::method_not_allowed,
-	    							   json_serializer::MakeMappedResponce({ {"code", "invalidMethod"},
-																  {"message", "Invalid method"}}),
-								       http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	    							   json_serializer::MakeMappedResponce(invaliMethodResp),
+								       http_version, keep_alive, ContentType::APPLICATION_JSON,
+									   {{http::field::cache_control, "no-cache"sv}});
 
 		return resp;
 	}
@@ -275,9 +312,9 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
 	if(auth_token.empty())
 	{
 		auto resp = MakeStringResponse(http::status::unauthorized,
-				    				   json_serializer::MakeMappedResponce({ {"code", "invalidToken"},
-       																		  {"message", "Authorization header is required"}}),
-  									   http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+				    				   json_serializer::MakeMappedResponce(authHeaderRequiredResp),
+  									   http_version, keep_alive, ContentType::APPLICATION_JSON,
+									   {{http::field::cache_control, "no-cache"sv}});
 
 		return resp;
    }
@@ -285,9 +322,9 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
 		if(!game_.HasSessionWithAuthInfo(auth_token))
 		{
 			auto resp = MakeStringResponse(http::status::unauthorized,
-    				    					json_serializer::MakeMappedResponce({ {"code", "unknownToken"},
-           																		  {"message", "Player token has not been found"}}),
-      									    http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+    				    					json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
+      									    http_version, keep_alive, ContentType::APPLICATION_JSON,
+											{{http::field::cache_control, "no-cache"sv}});
 
     		return resp;
 		}
@@ -312,16 +349,18 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	 if(method != http::verb::post)
 	 {
 		 resp = MakeStringResponse(http::status::method_not_allowed,
-	  	    			           json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
-                                   http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	  	    			           json_serializer::MakeMappedResponce(invaliMethodResp),
+                                   http_version, keep_alive, ContentType::APPLICATION_JSON,
+								   {{http::field::cache_control, "no-cache"sv}});
 
 		 return resp;
 	 }
 	 if(ticker_)
 	 {
 		 resp = MakeStringResponse(http::status::bad_request,
-	  		  					  json_serializer::MakeMappedResponce({ {"code", "badRequest"},{"message", "Invalid endpoint"}}),
-	  		   					  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	  		  					  json_serializer::MakeMappedResponce(invalidEndpointResp),
+	  		   					  http_version, keep_alive, ContentType::APPLICATION_JSON,
+								  {{http::field::cache_control, "no-cache"sv}});
 	 }
 	 else
 	 {
@@ -334,8 +373,9 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	  		catch(BadDeltaTimeException& ex)
 	  		{
 	  			resp = MakeStringResponse(http::status::bad_request,
-	  									  json_serializer::MakeMappedResponce({ {"code", "invalidArgument"},{"message", "Failed to parse tick request JSON"}}),
-	   									  http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+	  									  json_serializer::MakeMappedResponce(failedToParseTickResp),
+	   									  http_version, keep_alive, ContentType::APPLICATION_JSON,
+										  {{http::field::cache_control, "no-cache"sv}});
 	  		}
 	 }
 
