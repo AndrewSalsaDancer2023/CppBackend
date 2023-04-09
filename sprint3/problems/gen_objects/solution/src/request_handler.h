@@ -50,7 +50,7 @@ public:
    			{
    				auto resp = MakeStringResponse(http::status::method_not_allowed,
    					  	    				   json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
-											   req.version(),req.keep_alive(), ContentType::APPLICATION_JSON);
+											   req.version(),req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
    				send(std::move(resp));
    				return;
