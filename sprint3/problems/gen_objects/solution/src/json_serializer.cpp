@@ -191,8 +191,13 @@ namespace json_serializer {
     		loot_obj["name"] = loot.GetName();
     		loot_obj["file"] = loot.GetFile();
     		loot_obj["type"] = loot.GetType();
-    		loot_obj["rotation"] = loot.GetRotation();
-    		loot_obj["color"] = loot.GetColor();
+
+    		if(!loot.GetRotation() >= 0)
+    			loot_obj["rotation"] = loot.GetRotation();
+
+    		if(!loot.GetColor().empty())
+    			loot_obj["color"] = loot.GetColor();
+
     		loot_obj["scale"] = loot.GetScale();
 
     		loots_ar.emplace_back(loot_obj);

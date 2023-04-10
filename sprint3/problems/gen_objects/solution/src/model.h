@@ -174,7 +174,7 @@ private:
     	   std::string name_;
     	   std::string file_;
     	   std::string type_;
-    	   Coord rotation_{};
+    	   Coord rotation_{-1};
     	   std::string color_;
     	   double scale_{};
 };
