@@ -62,7 +62,7 @@ void RunWorkers(unsigned num_threads, const Fn& fn) {
         throw std::runtime_error("Static files root path is not specified"s);
     }
 
-    if (vm.contains("tick-period"s))
+    tick_period = "1000"; //if (vm.contains("tick-period"s))
     {
 	 args.tick_period = std::stoi(tick_period);
     }

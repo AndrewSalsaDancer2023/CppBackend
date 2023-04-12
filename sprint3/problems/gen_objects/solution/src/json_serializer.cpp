@@ -192,7 +192,7 @@ namespace json_serializer {
     		loot_obj["file"] = loot.GetFile();
     		loot_obj["type"] = loot.GetType();
 
-    		if(!loot.GetRotation() >= 0)
+    		if(loot.GetRotation() >= 0)
     			loot_obj["rotation"] = loot.GetRotation();
 
     		if(!loot.GetColor().empty())
