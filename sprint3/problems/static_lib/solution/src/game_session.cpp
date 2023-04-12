@@ -121,8 +121,13 @@ model::LootInfo GenerateLootInfo(const Map* pMap)
 
 void GameSession::GenerateLoot(int deltaTime, const Map* pMap)
 {
-//	std::cout << "GenerateLoot:" << std::endl;
-	auto num_loot_to_generate = lootGen_->Generate(loot_gen::LootGenerator::TimeInterval{deltaTime}, loots_info_.size(), players_.size());
+//	std::cout << "GenerateLoot players:" << players_.size() << "Loots size: " << loots_info_.size() << std::endl;
+	if(loots_info_.size() >= players_.size())
+		return;
+
+//	auto num_loot_to_generate = lootGen_->Generate(loot_gen::LootGenerator::TimeInterval{deltaTime}, loots_info_.size(), players_.size());
+	int num_loot_to_generate = players_.size() - loots_info_.size();
+//	std::cout << "GenerateLoot num_loot_to_generate:" << num_loot_to_generate << std::endl;
 	while(num_loot_to_generate > 0)
 	{
 //		std::cout << "num_loot_to_generate:" << num_loot_to_generate << std::endl;

@@ -46,7 +46,7 @@ namespace json_loader {
         model::Loot loot(loot_object.at("name").as_string().data(),
         				 loot_object.at("file").as_string().data(),
 						 loot_object.at("type").as_string().data(),
-						 loot_object.contains("rotation") ? loot_object.at("rotation").as_int64() : 0,
+						 loot_object.contains("rotation") ? loot_object.at("rotation").as_int64() : -1,
 						 loot_object.contains("color") ? loot_object.at("color").as_string().data() : "",
 						 loot_object.at("scale").as_double());
 

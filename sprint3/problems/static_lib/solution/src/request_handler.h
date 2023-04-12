@@ -46,11 +46,12 @@ public:
     			    	    });
     	    }
 
-   			if( req.method() != http::verb::get)
+   			if((req.method() != http::verb::get) && (req.method() != http::verb::head))
    			{
    				auto resp = MakeStringResponse(http::status::method_not_allowed,
    					  	    				   json_serializer::MakeMappedResponce({ {"code", "invalidMethod"}, {"message", "Invalid method"}}),
-											   req.version(),req.keep_alive(), ContentType::APPLICATION_JSON);
+											   req.version(),req.keep_alive(), ContentType::APPLICATION_JSON,
+											   {{http::field::cache_control, "no-cache"sv},{http::field::allow, HeaderType::ALLOW_HEADERS}});
 
    				send(std::move(resp));
    				return;
@@ -81,7 +82,10 @@ public:
             	   const auto& responce = json_serializer::GetMapContentResponce(game_, {target.begin(), target.end()});
             	   if(!responce.empty())
             	   {
-            		   resp = MakeStringResponse(http::status::ok, responce, req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+            		   if(req.method() == http::verb::get)
+            			   resp = MakeStringResponse(http::status::ok, responce, req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
+            		   else
+            			   resp = MakeStringResponse(http::status::ok, "", req.version(), req.keep_alive(), ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
             	   }
             	   else
             	   {

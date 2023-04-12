@@ -284,10 +284,10 @@ StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_vie
 		return resp;
    }
 
-  auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
-  const auto& loots = game_.GetLootsForAuthInfo(auth_token);
   if(method == http::verb::get)
   {
+	  auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
+	  auto loots = game_.GetLootsForAuthInfo(auth_token);
 	  auto resp = MakeStringResponse(http::status::ok, json_serializer::GetPlayersDogInfoResponce(players, loots), http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  return resp;
   }
@@ -369,6 +369,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
 	  			//std::cout << "HandleTickAction:" << deltaTime << std::endl;
 	  			game_.MoveDogs(deltaTime);
+	  			game_.GenerateLoot(deltaTime);
 	  			resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  		}
 	  		catch(BadDeltaTimeException& ex)
