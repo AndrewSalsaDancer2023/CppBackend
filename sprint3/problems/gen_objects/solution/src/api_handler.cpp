@@ -356,14 +356,14 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 
 		 return resp;
 	 }
-	 if(ticker_)
+/*	 if(ticker_)
 	 {
 		 resp = MakeStringResponse(http::status::bad_request,
 	  		  					  json_serializer::MakeMappedResponce(invalidEndpointResp),
 	  		   					  http_version, keep_alive, ContentType::APPLICATION_JSON,
 								  {{http::field::cache_control, "no-cache"sv}});
 	 }
-	 else
+	 else*/
 	 {
 		 try{
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
