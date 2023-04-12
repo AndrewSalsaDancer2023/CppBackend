@@ -369,6 +369,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
 	  			//std::cout << "HandleTickAction:" << deltaTime << std::endl;
 	  			game_.MoveDogs(deltaTime);
+	  			game_.GenerateLoot(deltaTime);
 	  			resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  		}
 	  		catch(BadDeltaTimeException& ex)
