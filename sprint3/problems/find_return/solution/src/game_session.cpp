@@ -4,6 +4,10 @@
 #include "server_exceptions.h"
 #include "loot_generator.h"
 #include "utils.h"
+#include "collision_detector.h"
+
+constexpr double baseWidth = 0.5;
+constexpr double lootWidth = 0.0;
 
 namespace model
 {
@@ -15,9 +19,10 @@ Player::Player(unsigned int id, const std::string& name, const std::string& toke
 	dog_ = std::make_shared<Dog>(map, spawn_dog_in_random_point, defaultBagCapacity);
 }
 
-std::shared_ptr<Player> GameSession::AddPlayer(const std::string player_name, const model::Map* map,
+std::shared_ptr<Player> GameSession::AddPlayer(const std::string player_name, model::Map* map,
 											   bool spawn_dog_in_random_point, unsigned defaultBagCapacity)
 {
+	map_ = map;
 	auto itFind = std::find_if(players_.begin(), players_.end(), [&player_name](std::shared_ptr<Player>& player){
 				return player->GetName() == player_name;
 			});
@@ -64,10 +69,83 @@ const std::vector<std::shared_ptr<Player>> GameSession::GetAllPlayers()
 	return players_;
 }
 
+void AddLootToDog(std::shared_ptr<model::Dog> dog, std::vector<LootInfo>& loots, const std::vector<collision_detector::Item>& items)
+{
+	for(const auto& item : items)
+	{
+		if(item.item_type == collision_detector::ItemType::Office)
+		{
+			std::cout << "GameSession::Pass loot to office: " << std::endl;
+			dog->PassLootToOffice();
+		}
+		else
+		{
+			auto itFind = std::find_if(loots.begin(), loots.end(),
+									[id = item.id](const auto& elem ){
+														return elem.id == id;
+													});
+
+			if(itFind == loots.end())
+				continue;
+
+			if(dog->AddLoot(*itFind))
+				loots.erase(itFind);
+		}
+	}
+}
+
+std::vector<collision_detector::Item> GetGatheredItems(const collision_detector::Gatherer& gatherer, std::vector<LootInfo>& loots, model::Map* map)
+{
+	collision_detector::ItemGatherer item_gath;
+
+	item_gath.AddGatherer(gatherer);
+
+	for(const auto& cur_loot : loots)
+	{
+		collision_detector::Item item(cur_loot.id, {cur_loot.x, cur_loot.y}, lootWidth);
+		item_gath.AddItem(item);
+	}
+
+	if(map)
+	{
+		const auto& offices = map->GetOffices();
+		for(const auto& office : offices)
+		{
+		//		std::cout << "Dog::GatherLoot gather office loot" << std::endl;
+			collision_detector::Item item(std::numeric_limits<unsigned>::max(),
+										  {(double)office.GetPosition().x, (double)office.GetPosition().y},
+										  baseWidth, collision_detector::ItemType::Office);
+			//item_gath.AddItem(item);
+			item_gath.AddItem(item);
+		}
+	}
+	const auto& ev = collision_detector::FindGatherEvents(item_gath);
+
+	std::vector<collision_detector::Item> result;
+
+	for(size_t i =0; i < ev.size(); ++i)
+	{
+/*		gathered_items_id_.push_back(ev[i].item_id);
+		std::cout << std::endl;
+        std::cout << "gather loot id: " << ev[i].item_id << std::endl;
+        std::cout << std::endl;*/
+		std::cout << "gather loot id: " << ev[i].item_id << std::endl;
+		result.push_back(item_gath.GetItem(ev[i].item_id));
+		//std::cout << "GetGatheredItems push_back item: " << result.back().id << std::endl;
+	}
+
+	return result;
+}
+
 void GameSession::MoveDogs(int deltaTime)
 {
-	std::for_each(players_.begin(), players_.end(), [deltaTime](std::shared_ptr<Player>& player){
-		player->GetDog()->Move(deltaTime);
+	std::for_each(players_.begin(), players_.end(), [this, deltaTime](std::shared_ptr<Player>& player){
+		std::optional<collision_detector::Gatherer> gatherer = player->GetDog()->Move(deltaTime);
+		if(!gatherer)
+			return;
+
+		auto items = GetGatheredItems(*gatherer, loots_info_, map_);
+		AddLootToDog(player->GetDog(), loots_info_, items);
 	});
 }
 

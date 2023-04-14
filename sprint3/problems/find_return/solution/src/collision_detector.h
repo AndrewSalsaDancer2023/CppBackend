@@ -2,7 +2,12 @@
 #include <algorithm>
 #include <vector>
 #include <cassert>
+#include <iostream>
 namespace collision_detector {
+
+enum class ItemType {
+Loot, Office
+};
 
 struct Point2D {
     Point2D(double _x, double _y) : x{_x}, y{_y} {}
@@ -26,30 +31,11 @@ struct CollectionResult {
     double proj_ratio;
 };
 
-// Движемся из точки a в точку b и пытаемся подобрать точку c.
-// Эта функция реализована в уроке.
-//CollectionResult TryCollectPoint(geom::Point2D a, geom::Point2D b, geom::Point2D c);
-CollectionResult TryCollectPoint(Point2D a, Point2D b, Point2D c) {
-    // Проверим, что перемещение ненулевое.
-    // Тут приходится использовать строгое равенство, а не приближённое,
-    // пскольку при сборе заказов придётся учитывать перемещение даже на небольшое
-    // расстояние.
-    assert(b.x != a.x || b.y != a.y);
-    const double u_x = c.x - a.x;
-    const double u_y = c.y - a.y;
-    const double v_x = b.x - a.x;
-    const double v_y = b.y - a.y;
-    const double u_dot_v = u_x * v_x + u_y * v_y;
-    const double u_len2 = u_x * u_x + u_y * u_y;
-    const double v_len2 = v_x * v_x + v_y * v_y;
-    const double proj_ratio = u_dot_v / v_len2;
-    const double sq_distance = u_len2 - (u_dot_v * u_dot_v) / v_len2;
-
-    return CollectionResult(sq_distance, proj_ratio);
-}
-
 struct Item {
-    Item(const Point2D& pos, double wdth) : position{pos}, width{wdth} {}
+    Item(unsigned _id, const Point2D& pos, double wdth, ItemType type = ItemType::Loot)
+    : id{_id}, item_type{type}, position{pos}, width{wdth} {}
+    unsigned id;
+    ItemType item_type;
     Point2D position;
     double width;
 };
@@ -60,6 +46,13 @@ struct Gatherer {
     Point2D start_pos;
     Point2D end_pos;
     double width;
+};
+
+using Items = std::vector<Item>;
+
+struct GatheringInfo {
+	Gatherer gatherer;
+	Items items;
 };
 
 class ItemGathererProvider {
@@ -111,6 +104,29 @@ private:
     std::vector<Gatherer> gatherers_;
 };
 
+namespace {
+// Движемся из точки a в точку b и пытаемся подобрать точку c.
+// Эта функция реализована в уроке.
+CollectionResult TryCollectPoint(Point2D a, Point2D b, Point2D c) {
+    // Проверим, что перемещение ненулевое.
+    // Тут приходится использовать строгое равенство, а не приближённое,
+    // пскольку при сборе заказов придётся учитывать перемещение даже на небольшое
+    // расстояние.
+	//cout << "a.x:" << a.x << " a.y:" << a.y << " b.x:" << b.x << " b.y:" << b.y << std::endl;
+    assert(b.x != a.x || b.y != a.y);
+    const double u_x = c.x - a.x;
+    const double u_y = c.y - a.y;
+    const double v_x = b.x - a.x;
+    const double v_y = b.y - a.y;
+    const double u_dot_v = u_x * v_x + u_y * v_y;
+    const double u_len2 = u_x * u_x + u_y * u_y;
+    const double v_len2 = v_x * v_x + v_y * v_y;
+    const double proj_ratio = u_dot_v / v_len2;
+    const double sq_distance = u_len2 - (u_dot_v * u_dot_v) / v_len2;
+
+    return CollectionResult(sq_distance, proj_ratio);
+}
+
 // Эту функцию вам нужно будет реализовать в соответствующем задании.
 // При проверке ваших тестов она не нужна - функция будет линковаться снаружи.
 std::vector<GatheringEvent> FindGatherEvents(const ItemGathererProvider& provider) {
@@ -133,6 +149,6 @@ std::vector<GatheringEvent> FindGatherEvents(const ItemGathererProvider& provide
     }
     return res;
 }
-
+}
 }  // namespace collision_detector
 

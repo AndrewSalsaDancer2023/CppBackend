@@ -48,7 +48,8 @@ namespace json_loader {
 						 loot_object.at("type").as_string().data(),
 						 loot_object.contains("rotation") ? loot_object.at("rotation").as_int64() : -1,
 						 loot_object.contains("color") ? loot_object.at("color").as_string().data() : "",
-						 loot_object.at("scale").as_double());
+						 loot_object.at("scale").as_double(),
+						 loot_object.contains("value") ? loot_object.at("value").as_int64() : 0);
 
         return loot;
     }

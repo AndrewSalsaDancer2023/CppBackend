@@ -105,7 +105,7 @@ namespace json_serializer {
 			dog_object["dir"] = model::ConvertDogDirectionToString(dir);
 
 			dog_object["bag"] = SerializeDogBag(dog->GetGatheredLoot());
-
+			//dog_object["score"] = dog->GetScore();
 			players_object[std::to_string(player->GetId())] = dog_object;
 	  	}
 

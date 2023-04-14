@@ -79,7 +79,7 @@ Game::PlayerAuthInfo Game::AddPlayer(const std::string& map_id, const std::strin
     	session = std::make_shared<GameSession>(map_id, loot_period, loot_probability);
     	sessions_.push_back(session);
     }
-    auto player = session->AddPlayer(player_name, mapToAdd, spawn_in_random_points_, default_bag_capacity_);
+    auto player = session->AddPlayer(player_name, const_cast<Map*>(mapToAdd), spawn_in_random_points_, default_bag_capacity_);
     return {player->GetToken(), player->GetId()};
 }
 

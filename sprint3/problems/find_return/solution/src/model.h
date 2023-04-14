@@ -55,8 +55,8 @@ struct LootInfo
 	LootInfo(unsigned _id, unsigned _type, double coordx, double coordy)
 	: id{_id}, type{_type}, x{coordx}, y{coordy}
 	{}
-	unsigned type;
 	unsigned id;
+	unsigned type;
 	double x;
 	double y;
 };
@@ -149,8 +149,8 @@ private:
 class Loot {
 public:
     	   Loot(std::string name, std::string file, std::string type,
-    			Coord rotation, std::string color, double scale) noexcept
-    	   :name_{name}, file_{file}, type_{type}, rotation_{rotation}, color_{color}, scale_{scale}
+    			Coord rotation, std::string color, double scale, int score) noexcept
+    	   :name_{name}, file_{file}, type_{type}, rotation_{rotation}, color_{color}, scale_{scale}, score_{score}
     	   {
 /*    	        std::cout << "Loot:" << std::endl;
     	        std::cout << "name:" << loot_object.at("name").as_string().data() << std::endl;
@@ -170,6 +170,7 @@ public:
     	   Coord GetRotation() const noexcept { return rotation_;}
     	   const std::string& GetColor() const noexcept { return color_;}
     	   double GetScale() const noexcept {return scale_;}
+    	   int GetScore() const noexcept { return score_;}
 private:
     	   std::string name_;
     	   std::string file_;
@@ -177,6 +178,7 @@ private:
     	   Coord rotation_{-1};
     	   std::string color_;
     	   double scale_{};
+    	   int score_{};
 };
 
 class Map {

@@ -9,6 +9,8 @@ namespace model
 {
     constexpr double dS = 0.4;
     constexpr int millisescondsInSecond = 1000;
+    constexpr double gathererWidth = 0.6;
+
     std::string ConvertDogDirectionToString(model::DogDirection direction)
     {
     	std::map<model::DogDirection, std::string> dir{ {model::DogDirection::EAST, "R"},
@@ -54,20 +56,30 @@ namespace model
 		navigator_->SetDogSpeed(speed_);
 	}
 
-	void Dog::Move(int deltaTime)
+	std::optional<collision_detector::Gatherer> Dog::Move(int deltaTime)
 	{
-		if(direction_ == DogDirection::STOP)
-			return;
+		std::optional<collision_detector::Gatherer> res;
 
-		DogPosition before =  GetPosition();
-		std::cout << std::endl;
-		std::cout << "Before moving :" << before.x << " y:" << before.y << std::endl;
+		if(direction_ == DogDirection::STOP)
+			return res;
+
+		DogPosition start =  GetPosition();
+//		std::cout << std::endl;
+//		std::cout << "Before moving :" << before.x << " y:" << before.y << std::endl;
 		navigator_->MoveDog(direction_, speed_, deltaTime);
 
-		std::cout << std::endl;
-		DogPosition after =  GetPosition();
-		if(after.x > before.x)
-		std::cout << "After moving :" << after.x << " y:" << after.y << std::endl;
+//		std::cout << std::endl;
+		DogPosition end =  GetPosition();
+//		if(after.x > before.x)
+//		std::cout << "After moving :" << after.x << " y:" << after.y << std::endl;
+		if((std::abs(start.x-end.x) > std::numeric_limits<double>::epsilon()) ||
+		   (std::abs(start.y-end.y) > std::numeric_limits<double>::epsilon()))
+		{
+			//return GatherLoot(start, end, probableLoot);
+			collision_detector::Gatherer gth({start.x, start.y}, {end.x, end.y}, gathererWidth);
+			res = gth;
+		}
+		return res;
 	}
 
 	bool Dog::AddLoot(const model::LootInfo& loot)
@@ -77,6 +89,17 @@ namespace model
 
 		gathered_loots_.push_back(loot);
 		return true;
+	}
+
+	void Dog::PassLootToOffice()
+	{
+		const auto& loots =  map_->GetLoots();
+
+		for(const auto& loot : gathered_loots_)
+		{
+			score_ += loots[loot.type].GetScore();;
+		}
+		gathered_loots_.clear();
 	}
 
 	bool DogNavigator::RoadsCrossed(const model::Road& road1, const model::Road& road2)

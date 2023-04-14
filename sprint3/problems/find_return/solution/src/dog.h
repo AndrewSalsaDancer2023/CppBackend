@@ -3,6 +3,12 @@
 #include <optional>
 #include <iostream>
 
+namespace collision_detector {
+	enum class ItemType;
+	struct GatheringEvent;
+	struct Gatherer;
+}
+
 namespace model {
 struct Point;
 class Map;
@@ -92,13 +98,15 @@ public:
 	Dog(const model::Map *map, bool spawn_dog_in_random_point, unsigned defaultBagCapacity);
 	void SetSpeed(model::DogDirection dir, double speed);
 	void SetDirection(const DogDirection& dir) { direction_ = dir;}
-	void Move(int deltaTime);
+	std::optional<collision_detector::Gatherer> Move(int deltaTime);
 	DogDirection GetDirection() {return direction_;}
 	DogPosition GetPosition() {return navigator_->GetDogPosition();}
 	DogSpeed GetSpeed() {return navigator_->GetDogSpeed();}
 	void SpawnDogInMap(bool spawn_in_random_point) {navigator_->SpawnDogInMap(spawn_in_random_point);}
 	const std::vector<model::LootInfo>& GetGatheredLoot() { return gathered_loots_;}
 	bool AddLoot(const model::LootInfo& loot);
+	void PassLootToOffice();
+	int GetScore() const noexcept { return score_;}
 private:
 	DogDirection direction_;
 	DogSpeed speed_{0.0, 0.0};
@@ -106,6 +114,7 @@ private:
 	std::shared_ptr<DogNavigator> navigator_;
 	unsigned bag_capacity_{};
 	std::vector<model::LootInfo> gathered_loots_;
+	int score_{};
 };
 
 

@@ -36,26 +36,28 @@ class GameSession
 {
 public:
 	GameSession(const std::string& map_id, double loot_period, double loot_probability)
-	: map_(map_id)
+	: map_id_(map_id)
 	{InitLootGenerator(loot_period, loot_probability);}
-	std::shared_ptr<Player> AddPlayer(const std::string player_name, const model::Map* map,
+	std::shared_ptr<Player> AddPlayer(const std::string player_name, model::Map* map,
 									  bool spawn_dog_in_random_point, unsigned defaultBagCapacity);
-	const std::string& GetMap() {return map_;}
+	const std::string& GetMap() {return map_id_;}
 	bool HasPlayerWithAuthToken(const std::string& auth_token);
 	const std::vector<std::shared_ptr<Player>> GetAllPlayers();
 	std::shared_ptr<Player> GetPlayerWithAuthToken(const std::string& auth_token);
 	void MoveDogs(int deltaTime);
 	size_t GetNumPlayers() { return players_.size();}
 	const vector<model::LootInfo>& GetLootsInfo() { return loots_info_;};
-	void AddLoot(const model::LootInfo& loot) {loots_info_.push_back(loot);}
+	//void AddLoot(const model::LootInfo& loot) {loots_info_.push_back(loot);}
 	void GenerateLoot(int deltaTime, const Map* pMap);
-	void InitLootGenerator(double loot_period, double loot_probability);
-private:
 
+private:
+	void InitLootGenerator(double loot_period, double loot_probability);
+//	void AddLootToDog(std::shared_ptr<Dog> dog, const std::vector<LootInfo>& items);
 	vector<std::shared_ptr<Player>> players_;
 	vector<LootInfo> loots_info_;
-	std::string map_;
+	std::string map_id_;
 	unsigned int player_id = 0;
+	model::Map* map_{};
 	std::shared_ptr<loot_gen::LootGenerator> lootGen_;
 };
 
