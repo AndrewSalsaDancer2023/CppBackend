@@ -218,7 +218,7 @@ namespace json_serializer {
     			loot_obj["color"] = loot.GetColor();
 
     		loot_obj["scale"] = loot.GetScale();
-
+    		loot_obj["value"] = loot.GetScore();
     		loots_ar.emplace_back(loot_obj);
     	}
     	root["lootTypes"] = loots_ar;
