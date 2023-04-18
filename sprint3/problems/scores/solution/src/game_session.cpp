@@ -161,14 +161,14 @@ model::LootInfo GenerateLootInfo(const Map* pMap)
 	const auto& roads = GetRoads(pMap);
 
 	size_t num_loots = pMap->GetNumLoots();
-	if(!num_loots)
+	if(num_loots == 0)
 		throw logic_error("No loot specified for the map!");
 
 	static unsigned loot_id = 0;
 	auto loot_type = utils::GetRandomNumber<size_t>(0, num_loots-1);
 
 	size_t num_roads = pMap->GetNumRoads();
-	if(!num_roads)
+	if(num_roads == 0)
 			throw logic_error("No roads specified for the map!");
 
 	auto road_index = utils::GetRandomNumber<size_t>(0, num_roads-1);

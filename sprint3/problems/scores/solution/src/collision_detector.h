@@ -8,7 +8,8 @@
 namespace collision_detector {
 
 enum class ItemType {
-	Loot, Office
+	Loot,
+	Office
 };
 
 struct CollectionResult {

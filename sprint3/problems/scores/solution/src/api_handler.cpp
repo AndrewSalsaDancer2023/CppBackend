@@ -207,12 +207,12 @@ StringResponse ApiHandler::HandleGetPlayersRequest(http::verb method, std::strin
 {
    if((method != http::verb::get) && (method != http::verb::head))
     {
-	    	auto resp = MakeStringResponse(http::status::method_not_allowed,
-    		    	    					json_serializer::MakeMappedResponce(invaliMethodResp),
-											http_version, keep_alive, ContentType::APPLICATION_JSON,
-											{{http::field::cache_control, "no-cache"sv},
-											 {http::field::allow, HeaderType::ALLOW_HEADERS}});
-	    	return resp;
+	   	   return  MakeStringResponse(http::status::method_not_allowed,
+    		     					  json_serializer::MakeMappedResponce(invaliMethodResp),
+									  http_version, keep_alive, ContentType::APPLICATION_JSON,
+									  {{http::field::cache_control, "no-cache"sv},
+									  {http::field::allow, HeaderType::ALLOW_HEADERS}});
+
     }
 
 
@@ -220,20 +220,18 @@ StringResponse ApiHandler::HandleGetPlayersRequest(http::verb method, std::strin
 
 	if(auth_token.empty())
 	{
-		auto resp = MakeStringResponse(http::status::unauthorized,
-	  		    					   json_serializer::MakeMappedResponce(authHeaderMissingResp),
-									   http_version, keep_alive, ContentType::APPLICATION_JSON,
-									   {{http::field::cache_control, "no-cache"sv}});
+		return MakeStringResponse(http::status::unauthorized,
+	  	   					      json_serializer::MakeMappedResponce(authHeaderMissingResp),
+								  http_version, keep_alive, ContentType::APPLICATION_JSON,
+								  {{http::field::cache_control, "no-cache"sv}});
 
-		return resp;
 	}
 	if(!game_.HasSessionWithAuthInfo(auth_token))
 	{
-		auto resp = MakeStringResponse(http::status::unauthorized,
-									   json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
-										http_version, keep_alive, ContentType::APPLICATION_JSON,
-										{{http::field::cache_control, "no-cache"sv}});
-		return resp;
+		return MakeStringResponse(http::status::unauthorized,
+							      json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
+								  http_version, keep_alive, ContentType::APPLICATION_JSON,
+								  {{http::field::cache_control, "no-cache"sv}});
 	}
 
 	auto players =  game_.FindAllPlayersForAuthInfo(auth_token);
@@ -275,17 +273,17 @@ StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_vie
 	if(auth_token.empty() || !game_.HasSessionWithAuthInfo(auth_token))
 	{
 		StringResponse resp;
-		if(auth_token.empty() || !IsValidAuthToken(auth_token, 32)/*(auth_token.size() != 32)*/)
-			resp = MakeStringResponse(http::status::unauthorized,
+		if(auth_token.empty() || !IsValidAuthToken(auth_token, 32))
+			return MakeStringResponse(http::status::unauthorized,
 	 		    					  json_serializer::MakeMappedResponce(authHeaderMissingResp),
   									  http_version, keep_alive, ContentType::APPLICATION_JSON,
 									  {{http::field::cache_control, "no-cache"sv}});
-		else
-			resp = MakeStringResponse(http::status::unauthorized,
-			    				      json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
-			      					  http_version, keep_alive, ContentType::APPLICATION_JSON,
-									  {{http::field::cache_control, "no-cache"sv}});
-		return resp;
+
+		return MakeStringResponse(http::status::unauthorized,
+		    				      json_serializer::MakeMappedResponce(playerTokenNotFoundResp),
+		      					  http_version, keep_alive, ContentType::APPLICATION_JSON,
+								  {{http::field::cache_control, "no-cache"sv}});
+
    }
 
   if(method == http::verb::get)
