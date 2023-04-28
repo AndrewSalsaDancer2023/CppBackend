@@ -15,11 +15,6 @@ std::vector<ui::detail::AuthorInfo> UseCasesImpl::GetAuthors()
 	return res;
 }
 
-void UseCasesImpl::DeleteAuthor(const ui::detail::AuthorInfo& auth_info)
-{
-	authors_.Delete(auth_info);
-}
-
 void UseCasesImpl::AddBook(const ui::detail::AddBookParams& params)
 {
 	authors_.AddBook(params);

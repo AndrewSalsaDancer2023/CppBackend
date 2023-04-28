@@ -11,7 +11,6 @@ public:
     }
 
     void AddAuthor(const std::string& name) override;
-    void DeleteAuthor(const ui::detail::AuthorInfo& author) override;
     std::vector<ui::detail::AuthorInfo> GetAuthors() override;
     void AddBook(const ui::detail::AddBookParams& params) override;
     std::vector<ui::detail::BookInfo> GetBooks() override;

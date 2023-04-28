@@ -13,7 +13,6 @@ public:
     }
 
     void Save(const domain::Author& author) override;
-    void Delete(const ui::detail::AuthorInfo& author) override;
     std::vector<ui::detail::AuthorInfo> Load() override;
     void AddBook(const ui::detail::AddBookParams& params) override;
     virtual std::vector<ui::detail::BookInfo> GetBooks() override;

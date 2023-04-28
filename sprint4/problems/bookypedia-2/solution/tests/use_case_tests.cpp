@@ -15,8 +15,6 @@ struct MockAuthorRepository : domain::AuthorRepository {
     	return {};
     }
 
-    void Delete(const ui::detail::AuthorInfo& auth_info) {}
-
     void AddBook(const ui::detail::AddBookParams& params) {
 
     }

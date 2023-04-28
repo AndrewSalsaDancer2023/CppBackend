@@ -19,7 +19,6 @@ struct AddBookParams {
 	std::string id;
     std::string title;
     std::string author_id;
-    std::string tags;
     int publication_year = 0;
 };
 
@@ -46,9 +45,6 @@ private:
     bool ShowBooks() const;
     bool ShowAuthorBooks() const;
 
-    std::string GetTags() const;
-    void AddAuthorByName(std::string& name) const;
-    bool DeleteAuthor(std::istream& cmd_input) const;
     std::optional<detail::AddBookParams> GetBookParams(std::istream& cmd_input) const;
     std::optional<std::string> SelectAuthor() const;
     std::vector<detail::AuthorInfo> GetAuthors() const;

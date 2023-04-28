@@ -34,7 +34,6 @@ private:
 class AuthorRepository {
 public:
     virtual void Save(const Author& author) = 0;
-    virtual void Delete(const ui::detail::AuthorInfo& auth_info) = 0;
     virtual std::vector<ui::detail::AuthorInfo> Load() = 0;
     virtual void AddBook(const ui::detail::AddBookParams& params) = 0;
     virtual std::vector<ui::detail::BookInfo> GetBooks() = 0;
