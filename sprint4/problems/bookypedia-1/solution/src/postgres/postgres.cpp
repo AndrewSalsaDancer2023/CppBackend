@@ -71,7 +71,7 @@ std::vector<ui::detail::BookInfo> AuthorRepositoryImpl::GetBooks()
 std::vector<ui::detail::BookInfo> AuthorRepositoryImpl::GetAuthorBooks(const std::string& author_id)
 {
 	pqxx::read_transaction rd(connection_);
-    auto query_text = "SELECT title, publication_year FROM books WHERE author_id = "+rd.quote(author_id);
+    auto query_text = "SELECT title, publication_year FROM books WHERE author_id = "+rd.quote(author_id)+" ORDER BY publication_year, title;";
 	std::vector<ui::detail::BookInfo> res;
 	// Выполняем запрос и итерируемся по строкам ответа
 	 for (auto [title, publication_year] : rd.query<std::string, int>(query_text))
