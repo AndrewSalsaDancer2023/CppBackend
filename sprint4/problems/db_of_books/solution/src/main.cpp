@@ -74,7 +74,7 @@ json::string execute_request(const std::string& json_string, pqxx::connection& c
 		if(action == "all_books")
 		{
 			pqxx::read_transaction rd(conn);
-			auto query_text = "SELECT id, title, author, year, ISBN FROM books ORDER BY year DESC, title, author, ISBN"_zv;
+			auto query_text = "SELECT * FROM books ORDER BY year DESC, title, author, ISBN;"_zv;
 			json::array resp_object;
 		    // Выполняем запрос и итерируемся по строкам ответа
     		   for (auto [id, title, author, year, ISBN] : rd.query<int, std::string_view, std::string_view, int, std::optional<std::string>>(query_text))
@@ -125,7 +125,7 @@ int main(int argc, const char* argv[]) {
         pqxx::connection conn{argv[1]};
 	prepare_table(conn);
 	
-	conn.prepare(tag_add_book, "INSERT INTO books (title, author, year, ISBN) VALUES ($1, $2, $3, $4)"_zv); 
+	conn.prepare(tag_add_book, "INSERT INTO books (title, author, year, ISBN) VALUES ($1, $2, $3, $4);"_zv); 
 
     	do{
     	try{
