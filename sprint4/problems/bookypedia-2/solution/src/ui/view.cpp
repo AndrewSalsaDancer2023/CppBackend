@@ -448,9 +448,9 @@ bool View::BookExists(const std::string& title) const {
 
 void View::ShowBookInfo(const ui::detail::BookInfo& info) const
 {
-	output_ << "Title:" <<  info.title << std::endl;
-	output_ << "Author:" << info.author << std::endl;
-	output_ << "Publication year:" << info.publication_year << std::endl;
+	output_ << "Title: " <<  info.title << std::endl;
+	output_ << "Author: " << info.author << std::endl;
+	output_ << "Publication year: " << info.publication_year << std::endl;
 	if(!info.tags.empty())
 		output_ << "Tags: " << info.tags << std::endl;
 }
