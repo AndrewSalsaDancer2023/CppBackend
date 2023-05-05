@@ -21,7 +21,6 @@ struct AppConfig {
 constexpr const char LEAVE_GAME_DB_URL_ENV_NAME[]{"GAME_DB_URL"};
 constexpr const char LEAVE_GAME_DB_URL_ENV_VALUE[]{"postgres://postgres:qazwsxedc@localhost:5432/leave_game_db"};
 
-
 namespace {
 
 [[nodiscard]] std::optional<Args> ParseCommandLine(int argc, const char* const argv[]) {
@@ -110,4 +109,9 @@ std::vector<model::PlayerRecordItem> GetRetiredPlayers(int start, int max_items)
 	return rep.GetRetired(start, max_items);
 }
 
+double ConvertPlayTimeToDouble(int play_time)
+{
+	const int millisec_In_Second = 1000;
+	return static_cast<double>(play_time) / millisec_In_Second;
+}
 }
