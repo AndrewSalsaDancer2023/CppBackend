@@ -17,6 +17,18 @@ public:
     void AddBook(const ui::detail::AddBookParams& params) override;
     virtual std::vector<ui::detail::BookInfo> GetBooks() override;
     std::vector<ui::detail::BookInfo> GetAuthorBooks(const std::string& author_id) override;
+
+    std::vector<std::string> GetAuthorBooksIds(const std::string& author_id);
+    void DeleteAuthorBooks(const std::vector<std::string>& ids/*, pqxx::work& work*/);
+    void DeleteAuthorBooksTags(const std::string& book_id/*, pqxx::work& work*/);
+
+    std::vector<ui::detail::BookInfo> GetBookByTitle(const std::string& book_title) override;
+    void AddTag(const ui::detail::AddBookParams& params) override;
+    void DeleteAuthor(const std::string& id) override;
+    void EditAuthor(const std::string& auth_id,const std::string& name) override;
+    void EditTag(const std::string& book_id,const std::string& new_tag);
+    void DeleteBook(const ui::detail::BookInfo& info) override;
+    void UpdateBook(const ui::detail::BookInfo& info) override;
 private:
     pqxx::connection& connection_;
 };

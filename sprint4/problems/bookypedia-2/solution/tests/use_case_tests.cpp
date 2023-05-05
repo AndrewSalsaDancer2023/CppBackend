@@ -26,6 +26,17 @@ struct MockAuthorRepository : domain::AuthorRepository {
     std::vector<ui::detail::BookInfo> GetAuthorBooks(const std::string& author_id) override {
     	return {};
     }
+
+    std::vector<ui::detail::BookInfo> GetBookByTitle(const std::string& book_title) override {
+    	return {};
+    }
+
+    void AddTag(const ui::detail::AddBookParams& params) override {}
+
+    void DeleteAuthor(const std::string& id) override {}
+    void EditAuthor(const std::string& auth_id,const std::string& name) override {}
+    void DeleteBook(const ui::detail::BookInfo& info) override {}
+    void UpdateBook(const ui::detail::BookInfo& info) override {}
 };
 
 struct Fixture {
