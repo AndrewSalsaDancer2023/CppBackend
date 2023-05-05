@@ -36,7 +36,7 @@ struct MockAuthorRepository : domain::AuthorRepository {
     void DeleteAuthor(const std::string& id) override {}
     void EditAuthor(const std::string& auth_id,const std::string& name) override {}
     void DeleteBook(const ui::detail::BookInfo& info) override {}
-    void UpdateBook(const ui::detail::BookInfo& info) override {}
+    void UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) override {}
 };
 
 struct Fixture {

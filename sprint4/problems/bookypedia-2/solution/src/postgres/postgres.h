@@ -28,7 +28,7 @@ public:
     void EditAuthor(const std::string& auth_id,const std::string& name) override;
     void EditTag(const std::string& book_id,const std::string& new_tag);
     void DeleteBook(const ui::detail::BookInfo& info) override;
-    void UpdateBook(const ui::detail::BookInfo& info) override;
+    void UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) override;
 private:
     pqxx::connection& connection_;
 };

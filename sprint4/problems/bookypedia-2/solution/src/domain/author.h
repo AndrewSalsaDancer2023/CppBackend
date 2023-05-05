@@ -43,7 +43,7 @@ public:
     virtual void DeleteAuthor(const std::string& id) = 0;
     virtual void EditAuthor(const std::string& auth_id, const std::string& name) = 0;
     virtual void DeleteBook(const ui::detail::BookInfo& info) = 0;
-    virtual void UpdateBook(const ui::detail::BookInfo& info) = 0;
+    virtual void UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) = 0;
 protected:
     ~AuthorRepository() = default;
 };

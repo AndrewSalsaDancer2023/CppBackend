@@ -517,7 +517,7 @@ try{
 std::string View::GetBookNewName(const std::string& name) const {
 
 	std::string new_name;
-	auto fmt = boost::format("Enter new title or empty line to use the current one %1% (y/n)?") % name;
+	auto fmt = boost::format("Enter new title or empty line to use the current one %1%?") % name;
     output_ << fmt << std::endl;
 
     std::getline(input_, new_name);
@@ -571,6 +571,12 @@ std::vector<detail::BookInfo> View::GetBookByTitle(const std::string& title) con
 {
 	std::vector<detail::BookInfo> res;
 
+	auto books = GetBooks();
+	for(auto it = books.begin(); it != books.end(); ++it)
+	{
+		if(it->title == title)
+			res.push_back(*it);
+	}
 
 	return res;
 }
@@ -608,10 +614,14 @@ try{
     info.title = GetBookNewName(name);
     info.publication_year = GetBookNewPubYear(info.publication_year);
     info.tags = GetNewTags(info.tags);
-
-    use_cases_.UpdateBook(info);
+/*
+	output_ << "New title:" << info.title << std::endl;
+	output_ << "New publication_year:" << info.publication_year << std::endl;
+	output_ << "New tags:" << info.tags << std::endl;
+*/
+    use_cases_.UpdateBook(books[index], info);
 }catch (const std::exception& ex) {
- 	output_ << "Book not found" << std::endl; //<< ex.what() << std::endl;
+ 	output_ << "Book not found" << std::endl; //ex.what() << std::endl;
 }
 	return true;
 }

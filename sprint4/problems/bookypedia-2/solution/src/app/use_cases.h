@@ -16,7 +16,7 @@ public:
     virtual void EditAuthor(const std::string& auth_id,const std::string& name) = 0;
     virtual std::vector<ui::detail::BookInfo> GetBookByTitle(const std::string& book_title) = 0;
     virtual void DeleteBook(const ui::detail::BookInfo& info) = 0;
-    virtual void UpdateBook(const ui::detail::BookInfo& info) = 0;
+    virtual void UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) = 0;
 protected:
     ~UseCases() = default;
 };

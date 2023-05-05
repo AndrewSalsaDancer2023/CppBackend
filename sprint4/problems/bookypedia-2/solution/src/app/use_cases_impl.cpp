@@ -48,8 +48,8 @@ void UseCasesImpl::DeleteBook(const ui::detail::BookInfo& info) {
 	authors_.DeleteBook(info);
 }
 
-void UseCasesImpl::UpdateBook(const ui::detail::BookInfo& info) {
-	authors_.UpdateBook(info);
+void UseCasesImpl::UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) {
+	authors_.UpdateBook(old_info, new_info);
 }
 
 }  // namespace app

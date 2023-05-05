@@ -234,23 +234,25 @@ void AuthorRepositoryImpl::EditTag(const std::string& book_id,const std::string&
 	work.commit();
 }
 
-void AuthorRepositoryImpl::UpdateBook(const ui::detail::BookInfo& info)
+void AuthorRepositoryImpl::UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info)
 {
-	pqxx::read_transaction rd(connection_);
-	//auto query_text = "SELECT id, title, author_id, publication_year FROM books WHERE author_id = "+rd.quote(author_id)+" ORDER BY publication_year, title";
-	auto query_text = "SELECT id FROM books WHERE title = "+rd.quote(info.title)+" AND author_id = " + rd.quote(info.author) + " AND publication_year = " + rd.quote(info.publication_year) +";";
 	std::string book_id;
-
-	// Выполняем запрос и итерируемся по строкам ответа
-	for (auto [id] : rd.query<std::string>(query_text))
 	{
-//		std::cout << "AuthorRepositoryImpl::DeleteBook: " << id << std::endl;
-		book_id = id;
+		pqxx::read_transaction rd(connection_);
+		auto query_text = "SELECT id FROM books WHERE title = "+rd.quote(old_info.title)+" AND publication_year = " + std::to_string(old_info.publication_year) +";";
+//		std::cout << "AuthorRepositoryImpl::query_text: " << query_text << std::endl;
+
+		// Выполняем запрос и итерируемся по строкам ответа
+		for (auto [id] : rd.query<std::string>(query_text))
+		{
+//			std::cout << "AuthorRepositoryImpl::UpdateBook: " << id << std::endl;
+			book_id = id;
+		}
 	}
-	EditTag(book_id, info.tags);
+	EditTag(book_id, new_info.tags);
 
 	pqxx::work work{connection_};
-	work.exec_params(R"(UPDATE books SET title = $1 publication_year = $2 WHERE id = $3;)"_zv, info.title,  info.publication_year, book_id);
+	work.exec_params(R"(UPDATE books SET title = $1, publication_year = $2 WHERE id = $3;)"_zv, new_info.title,  new_info.publication_year, book_id);
 
 	work.commit();
 
