@@ -67,13 +67,6 @@ void AuthorRepositoryImpl::AddTag(const ui::detail::AddBookParams& params) {
 				params.id, *it);
 		work.commit();
 	}
-
-	if(params.tags.empty())
-	{
-		pqxx::work work{connection_};
-		work.exec_params(R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv, params.id, "");
-		work.commit();
-	}
 }
 
 std::vector<ui::detail::BookInfo> AuthorRepositoryImpl::GetBooks()
@@ -176,14 +169,19 @@ std::vector<ui::detail::BookInfo> AuthorRepositoryImpl::GetBookByTitle(const std
        res.push_back(book);
   //     return res;
     }
-/*
-	auto tagless_text = "SELECT books.id AS book_id, title, name, publication_year FROM books INNER JOIN authors ON authors.id = author_id WHERE title = "+rd.quote(book_title)+";";
-	for (auto [id, title, name, publication_year] : rd.query<std::string, std::string, std::string, int>(whole_tag_query))
-	{
-	      ui::detail::BookInfo book{title, name, publication_year};
-	      res = book;
-	      return res;
-	}*/
+
+    if(!res.empty())
+    	return res;
+
+    std::string new_tag_query =
+    		"SELECT books.id AS book_id, title, name, publication_year FROM books INNER JOIN authors ON authors.id = author_id WHERE title ="+rd.quote(book_title)+";";
+
+    for (auto [id, title, name, publication_year] : rd.query<std::string, std::string, std::string, int>(new_tag_query))
+    {
+       ui::detail::BookInfo book{title, name, publication_year, {}};
+       res.push_back(book);
+    }
+
 	return res;
 }
 
@@ -251,13 +249,6 @@ void AuthorRepositoryImpl::EditTag(const std::string& book_id,const std::vector<
 	    work.exec_params(R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv, book_id, *it);
 	    work.commit();
 	}
-
-	if(new_tag.empty())
-	{
-		pqxx::work work{connection_};
-	    work.exec_params(R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv, book_id, "");
-	    work.commit();
-	}
 }
 
 void AuthorRepositoryImpl::UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info)
@@ -305,8 +296,17 @@ std::vector<std::string> AuthorRepositoryImpl::GetTags(const std::string& senten
      return res;
 }
 
-//https://github.com/AndrewSalsaDancer2023/CppBackend/actions/runs/4896668783/jobs/8743765896
+void AuthorRepositoryImpl::DeleteTables()
+{
+	pqxx::work work{connection_};
+	work.exec_params(R"(DELETE from book_tags;)"_zv);
+	work.exec_params(R"(DELETE from books;)"_zv);
+	work.exec_params(R"(DELETE from authors; )"_zv);
+	work.commit();
+}
 
+//https://github.com/AndrewSalsaDancer2023/CppBackend/actions/runs/4896668783/jobs/8743765896
+//https://github.com/AndrewSalsaDancer2023/CppBackend/actions/runs/4902168655/jobs/8753852539
 Database::Database(pqxx::connection connection)
     : connection_{std::move(connection)} {
     pqxx::work work{connection_};

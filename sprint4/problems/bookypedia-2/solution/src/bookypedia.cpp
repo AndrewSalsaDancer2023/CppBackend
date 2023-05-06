@@ -27,4 +27,9 @@ void Application::Run() {
     menu.Run();
 }
 
+void Application::DeleteTables()
+{
+	db_.GetAuthors().DeleteTables();
+}
+
 }  // namespace bookypedia

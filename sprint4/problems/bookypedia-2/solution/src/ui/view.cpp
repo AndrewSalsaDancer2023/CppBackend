@@ -143,8 +143,7 @@ try{
     	use_cases_.DeleteBook(res[index]);
     }
 } catch (const std::exception& ex) {
-    output_ << "Failed to delete book"sv << std::endl;
-	//output_ << "Failed to delete author:" << ex.what() << std::endl;
+//    output_ << "Failed to delete book"sv << std::endl;
 }
 	return true;
 }
@@ -515,7 +514,7 @@ try{
    		ShowBookInfo(res[index]);
     }
 }catch (const std::exception& ex) {
- 	output_ << "Failed to show book" << std::endl; //<< ex.what() << std::endl;
+ 	output_ << "Book not found" << std::endl; //<< ex.what() << std::endl;
 }
 	return true;
 }

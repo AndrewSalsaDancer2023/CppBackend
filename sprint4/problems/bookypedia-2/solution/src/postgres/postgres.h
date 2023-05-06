@@ -29,6 +29,7 @@ public:
     void DeleteBook(const ui::detail::BookInfo& info) override;
     void UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) override;
     std::vector<std::string> GetTags(const std::string& sentence);
+    void DeleteTables();
 private:
     pqxx::connection& connection_;
 };

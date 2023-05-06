@@ -13,7 +13,7 @@ struct AppConfig {
 class Application {
 public:
     explicit Application(const AppConfig& config);
-
+    void DeleteTables();
     void Run();
 
 private:
