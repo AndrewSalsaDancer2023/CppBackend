@@ -19,7 +19,7 @@ struct AddBookParams {
 	std::string id;
     std::string title;
     std::string author_id;
-    std::string tags;
+    std::vector<std::string> tags;
     int publication_year = 0;
 };
 
@@ -32,7 +32,7 @@ struct BookInfo {
     std::string title;
     std::string author;
     int publication_year = 0;
-    std::string tags;
+    std::vector<std::string> tags;
 };
 
 }  // namespace detail
@@ -62,12 +62,13 @@ private:
     std::vector<detail::BookInfo> GetBooks() const;
     std::vector<detail::BookInfo> GetAuthorBooks(const std::string& author_id) const;
     std::string NormalizeTag(std::string& word) const;
-    std::string NormalizeTags(const std::string& sentence) const;
+    std::vector<std::string> NormalizeTags(const std::string& sentence) const;
     void ShowBookInfo(const ui::detail::BookInfo& info) const;
     int GetBookToShow(const std::vector<ui::detail::BookInfo>& books) const;
     std::string GetBookNewName(const std::string& name) const;
     int GetBookNewPubYear(int year) const;
-    std::string GetNewTags(const std::string& tags) const;
+    std::vector<std::string> GetNewTags(const std::vector<std::string>& tags) const;
+    std::string ConvertTagsToString(const std::vector<std::string>& tags) const;
     std::vector<detail::BookInfo> GetBookByTitle(const std::string& title) const;
     menu::Menu& menu_;
     app::UseCases& use_cases_;

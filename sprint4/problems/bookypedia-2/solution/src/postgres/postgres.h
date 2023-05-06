@@ -1,7 +1,6 @@
 #pragma once
 #include <pqxx/connection>
 #include <pqxx/transaction>
-
 #include "../domain/author.h"
 
 namespace postgres {
@@ -26,9 +25,10 @@ public:
     void AddTag(const ui::detail::AddBookParams& params) override;
     void DeleteAuthor(const std::string& id) override;
     void EditAuthor(const std::string& auth_id,const std::string& name) override;
-    void EditTag(const std::string& book_id,const std::string& new_tag);
+    void EditTag(const std::string& book_id,const std::vector<std::string>& new_tag);
     void DeleteBook(const ui::detail::BookInfo& info) override;
     void UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info) override;
+    std::vector<std::string> GetTags(const std::string& sentence);
 private:
     pqxx::connection& connection_;
 };

@@ -193,7 +193,7 @@ bool View::AddBook(std::istream& cmd_input) const {
         	use_cases_.AddBook(*params);
         }
     } catch (const std::exception& ex) {
-//        output_ << "Failed to add book"sv << std::endl;
+        output_ << "Failed to add book"sv << std::endl;
 //    	output_ << ex.what() << std::endl;
     }
     return true;
@@ -272,11 +272,13 @@ std::optional<detail::AddBookParams> View::GetBookParams(std::istream& cmd_input
     std::string tags;
     std::getline(input_, tags);
     boost::algorithm::trim(tags);
+    std::vector<std::string> parsed_tags;
     if(!tags.empty())
-    	tags = NormalizeTags(tags);
+    	parsed_tags = NormalizeTags(tags);
  //   std::cout << "Tags: "<< tags << std::endl;
-    if(!tags.empty())
-    	params.tags = tags;
+    //if(!tags.empty())
+    //	params.tags = tags;
+    params.tags = parsed_tags;
 
     params.author_id = id;
     auto uuid = util::TaggedUUID<ui::detail::BookTag>::New();
@@ -415,8 +417,9 @@ std::string View::NormalizeTag(std::string& word) const
 
 
 
-std::string View::NormalizeTags(const std::string& sentence) const
+std::vector<std::string> View::NormalizeTags(const std::string& sentence) const
 {
+	std::vector<std::string> res;
     std::string word;
     std::set<std::string> tags;
 
@@ -428,12 +431,15 @@ std::string View::NormalizeTags(const std::string& sentence) const
         word = NormalizeTag(word);
         tags.insert(word);
     }
-    word.clear();
+ /*   word.clear();
     for(auto it = tags.begin(); it != tags.end(); ++it)
         word = word + *it + ", ";
 
-     word.erase(word.size()-2) ;
-     return word;
+     word.erase(word.size()-2) ; */
+    for(auto it = tags.begin(); it != tags.end(); ++it)
+    	res.push_back(*it);
+
+     return res;
 }
 
 bool View::BookExists(const std::string& title) const {
@@ -451,8 +457,8 @@ void View::ShowBookInfo(const ui::detail::BookInfo& info) const
 	output_ << "Title: " <<  info.title << std::endl;
 	output_ << "Author: " << info.author << std::endl;
 	output_ << "Publication year: " << info.publication_year << std::endl;
-	if(!info.tags.empty())
-		output_ << "Tags: " << info.tags << std::endl;
+	if(info.tags.size())
+		output_ << "Tags: " << ConvertTagsToString(info.tags) << std::endl;
 }
 
 int View::GetBookToShow(const std::vector<ui::detail::BookInfo>& books) const {
@@ -553,18 +559,33 @@ int View::GetBookNewPubYear(int year) const {
 	return publication_year;
 }
 
-std::string View::GetNewTags(const std::string& tags) const{
+std::string View::ConvertTagsToString(const std::vector<std::string>& tags) const {
+
 	std::string new_tags;
 
-	auto fmt = boost::format("Enter tags (current tags: %1%)") % tags;
+	for(auto it = tags.begin(); it != tags.end(); ++it)
+		new_tags = new_tags + *it + ", ";
+
+	new_tags.erase(new_tags.size()-2) ;
+
+	return new_tags;
+}
+
+std::vector<std::string> View::GetNewTags(const std::vector<std::string>& tags) const{
+
+	std::string new_tags = ConvertTagsToString(tags);
+	std::vector<std::string> res;
+
+	auto fmt = boost::format("Enter tags (current tags: %1%)") % new_tags;
 	output_ << fmt << std::endl;
 
 	std::getline(input_, new_tags);
 	boost::algorithm::trim(new_tags);
-	if(!new_tags.empty())
-		new_tags = NormalizeTags(new_tags);
 
-	return new_tags;
+	if(!new_tags.empty())
+		res = NormalizeTags(new_tags);
+
+	return res;
 }
 
 std::vector<detail::BookInfo> View::GetBookByTitle(const std::string& title) const

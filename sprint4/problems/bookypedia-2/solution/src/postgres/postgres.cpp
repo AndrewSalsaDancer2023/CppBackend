@@ -6,6 +6,8 @@
 #include <pqxx/except>
 #include "../domain/author.h"
 #include <iostream>
+#include <set>
+#include <boost/algorithm/string/trim.hpp>
 namespace postgres {
 
 using namespace std::literals;
@@ -56,14 +58,22 @@ INSERT INTO books (id, title, author_id, publication_year) VALUES ($1, $2, $3, $
 }
 
 void AuthorRepositoryImpl::AddTag(const ui::detail::AddBookParams& params) {
-//	if(params.tags.empty())
-//		return;
 
-    pqxx::work work{connection_};
-    work.exec_params(
-        R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv,
-	params.id, params.tags);
-    work.commit();
+	for(auto it = params.tags.begin(); it != params.tags.end(); ++it)
+	{
+		pqxx::work work{connection_};
+		work.exec_params(
+				R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv,
+				params.id, *it);
+		work.commit();
+	}
+
+	if(params.tags.empty())
+	{
+		pqxx::work work{connection_};
+		work.exec_params(R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv, params.id, "");
+		work.commit();
+	}
 }
 
 std::vector<ui::detail::BookInfo> AuthorRepositoryImpl::GetBooks()
@@ -162,7 +172,7 @@ std::vector<ui::detail::BookInfo> AuthorRepositoryImpl::GetBookByTitle(const std
     std::vector<ui::detail::BookInfo> res;
     for (auto [id, title, name, publication_year, tags] : rd.query<std::string, std::string, std::string, int, std::string>(whole_tag_query))
     {
-       ui::detail::BookInfo book{title, name, publication_year, tags};
+       ui::detail::BookInfo book{title, name, publication_year, GetTags(tags)};
        res.push_back(book);
   //     return res;
     }
@@ -226,12 +236,28 @@ void AuthorRepositoryImpl::DeleteBook(const ui::detail::BookInfo& info)
 	 }
 }
 
-void AuthorRepositoryImpl::EditTag(const std::string& book_id,const std::string& new_tag)
+void AuthorRepositoryImpl::EditTag(const std::string& book_id,const std::vector<std::string>& new_tag)
 {
-	pqxx::work work{connection_};
-	work.exec_params(R"(UPDATE book_tags SET tag = $1 WHERE book_id = $2;)"_zv, new_tag,  book_id);
+	{
+		pqxx::work work{connection_};
+		//work.exec_params(R"(UPDATE book_tags SET tag = $1 WHERE book_id = $2;)"_zv, new_tag,  book_id);
+		work.exec_params(R"(DELETE FROM book_tags WHERE book_id = $1;)"_zv, book_id);
+		work.commit();
+	}
 
-	work.commit();
+	for(auto it = new_tag.begin(); it != new_tag.end(); ++it)
+	{
+		pqxx::work work{connection_};
+	    work.exec_params(R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv, book_id, *it);
+	    work.commit();
+	}
+
+	if(new_tag.empty())
+	{
+		pqxx::work work{connection_};
+	    work.exec_params(R"(INSERT INTO book_tags (book_id, tag) VALUES ($1, $2);)"_zv, book_id, "");
+	    work.commit();
+	}
 }
 
 void AuthorRepositoryImpl::UpdateBook(const ui::detail::BookInfo& old_info, const ui::detail::BookInfo& new_info)
@@ -257,6 +283,29 @@ void AuthorRepositoryImpl::UpdateBook(const ui::detail::BookInfo& old_info, cons
 	work.commit();
 
 }
+
+std::vector<std::string> AuthorRepositoryImpl::GetTags(const std::string& sentence)
+{
+	std::vector<std::string> res;
+    std::string word;
+    std::set<std::string> tags;
+
+    std::istringstream iss(sentence);
+    while (std::getline(iss, word, ',')) {
+        boost::algorithm::trim(word);
+        if(word.empty())
+            continue;
+//        word = NormalizeTag(word);
+        tags.insert(word);
+    }
+
+    for(auto it = tags.begin(); it != tags.end(); ++it)
+    	res.push_back(*it);
+
+     return res;
+}
+
+//https://github.com/AndrewSalsaDancer2023/CppBackend/actions/runs/4896668783/jobs/8743765896
 
 Database::Database(pqxx::connection connection)
     : connection_{std::move(connection)} {
