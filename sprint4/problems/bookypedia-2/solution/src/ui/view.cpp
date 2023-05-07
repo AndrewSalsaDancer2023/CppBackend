@@ -616,7 +616,6 @@ try{
     		output_ << "Book not found" << std::endl;
     		return true;
     	}
-    	//	throw std::exception();
     	name = *title;
     }
     else
