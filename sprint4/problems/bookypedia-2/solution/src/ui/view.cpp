@@ -514,7 +514,7 @@ try{
     		ShowBookInfo(res[index]);
     }
 }catch (const std::exception& ex) {
- 	output_ << "Book not found" << std::endl; //<< ex.what() << std::endl;
+ 	//output_ << "Book not found" << std::endl;
 }
 	return true;
 }
@@ -612,7 +612,10 @@ try{
     {
     	auto title = SelectBook();
     	if (not title.has_value())
+    	{
+    		output_ << "Book not found" << std::endl;
     		return true;
+    	}
     	//	throw std::exception();
     	name = *title;
     }
