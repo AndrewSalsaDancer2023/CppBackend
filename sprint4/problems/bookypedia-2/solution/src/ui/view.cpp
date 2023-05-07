@@ -121,10 +121,10 @@ try{
     boost::algorithm::trim(name);
     if(name.empty())
     {
-    	//ShowBooks();
     	auto book_id = SelectBook();
     	 if (not book_id.has_value())
-    		 throw std::exception();
+    		 return true;
+    		// throw std::exception();
     	 name = *book_id;
     }
     else
@@ -143,7 +143,7 @@ try{
     		use_cases_.DeleteBook(res[index]);
     }
 } catch (const std::exception& ex) {
-    output_ << "Failed to delete book"sv << std::endl;
+    output_ << "Book not found"sv << std::endl;
 }
 	return true;
 }
