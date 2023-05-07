@@ -28,7 +28,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[]) {
 
 //	setenv(DB_URL_ENV_NAME2, DB_URL_ENV_VALUE2, 1);
         bookypedia::Application app{GetConfigFromEnv()};
-        app.DeleteTables();
+
         app.Run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

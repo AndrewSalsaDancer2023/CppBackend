@@ -139,11 +139,11 @@ try{
     	int index = 0;
     	if(res.size() > 1)
     		index = GetBookToShow(res);
-
-    	use_cases_.DeleteBook(res[index]);
+    	if(index >= 0)
+    		use_cases_.DeleteBook(res[index]);
     }
 } catch (const std::exception& ex) {
-//    output_ << "Failed to delete book"sv << std::endl;
+    output_ << "Failed to delete book"sv << std::endl;
 }
 	return true;
 }
@@ -245,6 +245,8 @@ std::optional<detail::AddBookParams> View::GetBookParams(std::istream& cmd_input
     			throw std::exception();
     		id = *author_id;
     	}
+    	else
+    		throw std::exception();
     }
     else
     {
@@ -361,12 +363,12 @@ std::optional<std::string> View::SelectBook() const {
     try {
     	book_idx = std::stoi(str);
     } catch (std::exception const&) {
-        throw std::runtime_error("Invalid book num");
+        throw std::exception();
     }
 
     --book_idx;
     if (book_idx < 0 or book_idx >= books.size()) {
-        throw std::runtime_error("Invalid book num");
+        throw std::exception();
     }
 //    output_ << "SelectBook index:" << book_idx << std::endl;
 //    output_ << "SelectBook title:" << books[book_idx].title << std::endl;
@@ -410,8 +412,10 @@ std::string View::NormalizeTag(std::string& word) const
     for(auto it = res.begin(); it != res.end(); ++it)
         rs = rs + *it + " ";
 
-     rs.erase(rs.size()-1) ;
-     return rs;
+    if(rs.size() > 1)
+    	rs.erase(rs.size()-1) ;
+
+    return rs;
 }
 
 
@@ -430,11 +434,7 @@ std::vector<std::string> View::NormalizeTags(const std::string& sentence) const
         word = NormalizeTag(word);
         tags.insert(word);
     }
- /*   word.clear();
-    for(auto it = tags.begin(); it != tags.end(); ++it)
-        word = word + *it + ", ";
 
-     word.erase(word.size()-2) ; */
     for(auto it = tags.begin(); it != tags.end(); ++it)
     	res.push_back(*it);
 
@@ -466,8 +466,8 @@ int View::GetBookToShow(const std::vector<ui::detail::BookInfo>& books) const {
 
     std::string str;
     if (!std::getline(input_, str) || str.empty()) {
-    	throw std::runtime_error("Invalid book num");
-        //return std::nullopt;
+    	//throw std::runtime_error("Invalid book num");
+        return -1;
     }
 
     int book_idx;
@@ -502,7 +502,7 @@ try{
     else
     {
     	if(!BookExists(name))
-    		throw std::exception();
+    		return true;
     }
     auto res = use_cases_.GetBookByTitle(name);
     if(res.size() > 0)
@@ -510,8 +510,8 @@ try{
     	int index = 0;
     	if(res.size() > 1)
     		index = GetBookToShow(res);
-
-   		ShowBookInfo(res[index]);
+    	if(index >=0)
+    		ShowBookInfo(res[index]);
     }
 }catch (const std::exception& ex) {
  	output_ << "Book not found" << std::endl; //<< ex.what() << std::endl;
@@ -565,7 +565,8 @@ std::string View::ConvertTagsToString(const std::vector<std::string>& tags) cons
 	for(auto it = tags.begin(); it != tags.end(); ++it)
 		new_tags = new_tags + *it + ", ";
 
-	new_tags.erase(new_tags.size()-2) ;
+	if(new_tags.size() > 2)
+		new_tags.erase(new_tags.size()-2) ;
 
 	return new_tags;
 }
@@ -611,7 +612,8 @@ try{
     {
     	auto title = SelectBook();
     	if (not title.has_value())
-    		throw std::exception();
+    		return true;
+    	//	throw std::exception();
     	name = *title;
     }
     else
@@ -628,18 +630,21 @@ try{
     int index = 0;
     if(books.size() > 1)
     	index = GetBookToShow(books);
+    if(index >= 0)
+    {
+    	detail::BookInfo info = books[index];
 
-    detail::BookInfo info = books[index];
+    	info.title = GetBookNewName(name);
+    	info.publication_year = GetBookNewPubYear(info.publication_year);
+    	info.tags = GetNewTags(info.tags);
 
-    info.title = GetBookNewName(name);
-    info.publication_year = GetBookNewPubYear(info.publication_year);
-    info.tags = GetNewTags(info.tags);
 /*
 	output_ << "New title:" << info.title << std::endl;
 	output_ << "New publication_year:" << info.publication_year << std::endl;
 	output_ << "New tags:" << info.tags << std::endl;
 */
-    use_cases_.UpdateBook(books[index], info);
+    	use_cases_.UpdateBook(books[index], info);
+    }
 }catch (const std::exception& ex) {
  	output_ << "Book not found" << std::endl; //ex.what() << std::endl;
 }

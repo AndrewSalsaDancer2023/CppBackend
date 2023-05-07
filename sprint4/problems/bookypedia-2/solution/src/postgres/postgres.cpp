@@ -212,17 +212,19 @@ void AuthorRepositoryImpl::EditAuthor(const std::string& auth_id,const std::stri
 
 void AuthorRepositoryImpl::DeleteBook(const ui::detail::BookInfo& info)
 {
-	pqxx::read_transaction rd(connection_);
-    //auto query_text = "SELECT id, title, author_id, publication_year FROM books WHERE author_id = "+rd.quote(author_id)+" ORDER BY publication_year, title";
-	auto query_text = "SELECT id FROM books WHERE title = "+rd.quote(info.title)+" AND author_id = " + rd.quote(info.author) + " AND publication_year = " + rd.quote(info.publication_year) +";";
 	std::vector<std::string> bookIds;
-	// Выполняем запрос и итерируемся по строкам ответа
-	 for (auto [id] : rd.query<std::string>(query_text))
-	 {
-//		 std::cout << "AuthorRepositoryImpl::DeleteBook: " << id << std::endl;
-		 bookIds.push_back(id);
-	 }
-
+	{
+		pqxx::read_transaction rd(connection_);
+		//auto query_text = "SELECT id, title, author_id, publication_year FROM books WHERE author_id = "+rd.quote(author_id)+" ORDER BY publication_year, title";
+		//auto query_text = "SELECT id FROM books WHERE title = "+rd.quote(info.title)+" AND author_id = " + rd.quote(info.author) + " AND publication_year = " + rd.quote(info.publication_year) +";";
+		auto query_text = "SELECT id FROM books WHERE title = "+rd.quote(info.title) + " AND publication_year = " + rd.quote(info.publication_year) +";";
+		// Выполняем запрос и итерируемся по строкам ответа
+		for (auto [id] : rd.query<std::string>(query_text))
+		{
+			//		 std::cout << "AuthorRepositoryImpl::DeleteBook: " << id << std::endl;
+			bookIds.push_back(id);
+		}
+	}
 	 for(auto it = bookIds.begin(); it != bookIds.end(); ++it)
 	 		DeleteAuthorBooksTags(*it);
 
@@ -286,7 +288,7 @@ std::vector<std::string> AuthorRepositoryImpl::GetTags(const std::string& senten
         boost::algorithm::trim(word);
         if(word.empty())
             continue;
-//        word = NormalizeTag(word);
+
         tags.insert(word);
     }
 
