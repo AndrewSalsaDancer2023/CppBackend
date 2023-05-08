@@ -650,7 +650,7 @@ try{
     	use_cases_.UpdateBook(books[index], info);
     }
 }catch (const std::exception& ex) {
- 	output_ << "Book not found" << std::endl; //ex.what() << std::endl;
+ 	//output_ << "Book not found" << std::endl;
 }
 	return true;
 }
