@@ -476,12 +476,12 @@ int View::GetBookToShow(const std::vector<ui::detail::BookInfo>& books) const {
     try {
     	book_idx = std::stoi(str);
     } catch (std::exception const&) {
-        throw std::runtime_error("Invalid book num");
+        throw std::exception();
     }
 
     --book_idx;
     if (book_idx < 0 or book_idx >= books.size()) {
-        throw std::runtime_error("Invalid book num");
+        throw std::exception();
     }
 //    output_ << "Select book:" << book_idx << std::endl;
     return book_idx;
@@ -523,13 +523,17 @@ try{
 
 std::string View::GetBookNewName(const std::string& name) const {
 
-	std::string new_name;
-	auto fmt = boost::format("Enter new title or empty line to use the current one %1%?") % name;
+	auto fmt = boost::format("Enter new title or empty line to use the current one (%1%):") % name;
     output_ << fmt << std::endl;
 
-    std::getline(input_, new_name);
+    std::string new_name;
+/*    std::getline(input_, new_name);
     boost::algorithm::trim(new_name);
+*/
+    if (!std::getline(input_, new_name) || new_name.empty())
+      	return name;
 
+    boost::algorithm::trim(new_name);
     if(new_name.empty())
     	return name;
 
@@ -540,7 +544,7 @@ int View::GetBookNewPubYear(int year) const {
 
 	int publication_year = 0;
 
-	auto fmt = boost::format("Enter publication year or empty line to use the current one (%1%)") % year;
+	auto fmt = boost::format("Enter publication year or empty line to use the current one (%1%):") % year;
 	output_ << fmt << std::endl;
 
 	std::string str;
