@@ -615,7 +615,7 @@ try{
     	auto title = SelectBook();
     	if (not title.has_value())
     	{
-    		output_ << "Book not found" << std::endl;
+    		//output_ << "Book not found" << std::endl;
     		return true;
     	}
     	name = *title;
