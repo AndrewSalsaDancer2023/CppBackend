@@ -192,7 +192,7 @@ bool View::AddBook(std::istream& cmd_input) const {
         	use_cases_.AddBook(*params);
         }
     } catch (const std::exception& ex) {
-        output_ << "Failed to add book"sv << std::endl;
+//        output_ << "Failed to add book"sv << std::endl;
 //    	output_ << ex.what() << std::endl;
     }
     return true;
@@ -234,7 +234,6 @@ std::optional<detail::AddBookParams> View::GetBookParams(std::istream& cmd_input
     std::string auth_name;
     std::getline(input_, auth_name);
     boost::algorithm::trim(auth_name);
-
     std::string id;
     if(auth_name.empty())
     {
@@ -259,7 +258,10 @@ std::optional<detail::AddBookParams> View::GetBookParams(std::istream& cmd_input
     		std::getline(input_, answer);
     		boost::algorithm::trim(answer);
     		if((answer != "Y") && (answer != "y"))
-    			throw std::exception();
+    		{
+    			output_ << "Failed to add book"sv << std::endl;
+    			return std::nullopt;
+    		}
     		else
     			use_cases_.AddAuthor(std::move(auth_name));
     	}
