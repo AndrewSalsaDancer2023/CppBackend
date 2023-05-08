@@ -623,7 +623,11 @@ try{
     else
     {
     	if(!BookExists(name))
-    		throw std::exception();
+    	{
+    		//throw std::exception();
+    		output_ << "Book not found" << std::endl;
+    		return true;
+    	}
     }
 //	output_ << "Selected name:" << name << std::endl;
     auto books = GetBookByTitle(name);
@@ -650,7 +654,7 @@ try{
     	use_cases_.UpdateBook(books[index], info);
     }
 }catch (const std::exception& ex) {
- 	//output_ << "Book not found" << std::endl;
+ //	output_ << "Book not found" << std::endl;
 }
 	return true;
 }
