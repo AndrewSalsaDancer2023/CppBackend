@@ -609,17 +609,17 @@ std::vector<detail::BookInfo> View::GetBookByTitle(const std::string& title) con
 }
 
 bool View::EditBook(std::istream& cmd_input) const {
-try{
+
     std::string name;
     std::getline(cmd_input, name);
     boost::algorithm::trim(name);
-
+try{
     if(name.empty())
     {
     	auto title = SelectBook();
     	if (not title.has_value())
     	{
-    		//output_ << "Book not found" << std::endl;
+    		output_ << "Book not found" << std::endl;
     		return true;
     	}
     	name = *title;
@@ -657,6 +657,8 @@ try{
 */
     	use_cases_.UpdateBook(books[index], info);
     }
+    else
+    	output_ << "Book not found" << std::endl;
 }catch (const std::exception& ex) {
  //	output_ << "Book not found" << std::endl;
 }
