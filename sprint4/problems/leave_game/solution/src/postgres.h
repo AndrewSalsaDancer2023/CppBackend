@@ -20,8 +20,8 @@ public:
         : connection_{connection}
     {}
 
-    void Save(const model::PlayerRecordItem& retired);
-    std::vector<model::PlayerRecordItem> GetRetired(int start, int max_items);
+    void SaveRetired(const model::PlayerRecordItem& retired);
+    std::vector<model::PlayerRecordItem> GetRetired(int start = 0, int max_items = 0);
 private:
     pqxx::connection& connection_;
 };

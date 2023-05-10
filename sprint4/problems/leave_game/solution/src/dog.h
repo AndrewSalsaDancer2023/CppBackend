@@ -93,7 +93,7 @@ public:
 	void SetScore(int score){ score_ = score;}
 	unsigned GetBagCapacity() { return bag_capacity_;}
 	void SetBagCapacity(unsigned capacity) {bag_capacity_ = capacity;}
-	int GetIdleTime() { return idle_time; }
+	int GetIdleTime() { return idle_time_; }
 	int GetPlayTime() { return play_time_;}
 	void SetPlayTime(int time) { play_time_ = time; }
 private:
@@ -104,7 +104,7 @@ private:
 	std::vector<model::LootInfo> gathered_loots_;
 	unsigned bag_capacity_{};
 	int score_{};
-	unsigned int idle_time{};
+	unsigned int idle_time_{};
 	int play_time_{};
 };
 }

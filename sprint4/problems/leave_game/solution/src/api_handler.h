@@ -50,6 +50,7 @@ public:
         										game.GenerateLoot(ticks.count());
         										game.MoveDogs(ticks.count());
         										game.SaveSessions(ticks.count());
+        										game.HandleRetiredPlayers();
 										   });
         }
     }

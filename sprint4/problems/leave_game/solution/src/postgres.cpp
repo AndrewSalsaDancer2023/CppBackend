@@ -10,7 +10,7 @@ namespace postgres {
 using namespace std::literals;
 using pqxx::operator"" _zv;
 
-void RetiredRepositoryImpl::Save(const model::PlayerRecordItem& retired)
+void RetiredRepositoryImpl::SaveRetired(const model::PlayerRecordItem& retired)
 {
 	pqxx::work work{connection_};
 	work.exec_params(
@@ -22,8 +22,17 @@ void RetiredRepositoryImpl::Save(const model::PlayerRecordItem& retired)
 std::vector<model::PlayerRecordItem> RetiredRepositoryImpl::GetRetired(int start, int max_items)
 {
 	pqxx::read_transaction rd(connection_);
-	auto fmat = boost::format("SELECT name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT %1% OFFSET %2%;") % max_items % start;
-	std::string query_text = fmat.str();
+	std::string query_text;
+	if(!max_items)
+	{
+		auto fmat = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms OFFSET %1%;") % start;
+		query_text = fmat.str();
+	}
+	else
+	{
+		auto fmat = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT %1% OFFSET %2%;") % max_items % start;
+		query_text = fmat.str();
+	}
     //std::string query_text = std::format("SELECT name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT {} OFFSET {};",max_items, start);
 	std::vector<model::PlayerRecordItem> res;
 	// Выполняем запрос и итерируемся по строкам ответа
@@ -51,7 +60,7 @@ void Database::CreateTable()
 			play_time_ms integer NOT NULL );
 		)"_zv);
 
-    work.exec(R"(CREATE INDEX score_time_name_idx ON retired_players (score DESC, play_time_ms, name);)"_zv);
+    work.exec(R"(CREATE INDEX IF NOT EXISTS score_time_name_idx ON retired_players (score DESC, play_time_ms, name);)"_zv);
     // коммитим изменения
     work.commit();
 }

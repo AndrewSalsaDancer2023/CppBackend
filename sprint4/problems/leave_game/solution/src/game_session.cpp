@@ -5,7 +5,7 @@
 #include "loot_generator.h"
 #include "utils.h"
 #include "collision_detector.h"
-
+#include <algorithm>
 constexpr double baseWidth = 0.5;
 constexpr double lootWidth = 0.0;
 
@@ -227,6 +227,15 @@ GameSessionState GameSession::GetState() const
 PlayerState Player::GetState()
 {
 	return PlayerState(name_, token_, id_, dog_);
+}
+
+void GameSession::DeleteRetiredPlayers(const std::vector<std::shared_ptr<Player>>& retired_players)
+{
+	for(auto it = retired_players.begin(); it != retired_players.end(); ++it)
+	{
+		std::remove(players_.begin(), players_.end(), *it);
+	}
+
 }
 
 }

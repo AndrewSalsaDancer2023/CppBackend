@@ -417,6 +417,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	  			game_.MoveDogs(deltaTime);
 	  			game_.GenerateLoot(deltaTime);
 	  			game_.SaveSessions(deltaTime);
+	  			game_.HandleRetiredPlayers();
 	  			resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive,
 	  									  ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  		}
@@ -435,7 +436,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 std::pair<int, int> ParseParameters(const std::map<std::string, std::string>& params)
 {
 	 int start = 0;
-	 int max_items = 100;
+	 int max_items = 0;
 
 	 try
 	 {

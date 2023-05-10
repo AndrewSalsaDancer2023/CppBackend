@@ -10,7 +10,7 @@ namespace model {
 	class GameSession;
 	struct GameSessionsStates;
 }
-
+using RetiredSessionPlayers = std::pair<std::shared_ptr<model::GameSession>, std::vector<std::shared_ptr<model::Player>>>;
 namespace model {
 
 using Dimension = int;
@@ -330,11 +330,14 @@ public:
     std::shared_ptr<GameSessionsStates> GetGameSessionsStates() const;
     void SaveSessions(int deltaTime);
     void RestoreSessions(const model::GameSessionsStates& sessions);
-    void FindExpiredSessions();
     std::vector<PlayerRecordItem> GetRecords(int start, int max_items) const;
+    void HandleRetiredPlayers();
 private:
     std::shared_ptr<GameSession> FindSession(const std::string& map_name);
     std::shared_ptr<GameSession> GetSessionForToken(const std::string& auth_token);
+    std::vector<RetiredSessionPlayers> FindExpiredPlayers();
+    void SaveExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players);
+    void DeleteExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players);
 private:
     using MapIdHasher = util::TaggedHasher<Map::Id>;
     using MapIdToIndex = std::unordered_map<Map::Id, size_t, MapIdHasher>;

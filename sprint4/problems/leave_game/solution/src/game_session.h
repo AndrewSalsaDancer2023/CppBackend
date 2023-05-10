@@ -136,6 +136,7 @@ public:
 	void SetPlayerId(unsigned int id) { player_id = id;}
 	void SetLootsInfo(const std::vector<LootInfo>& loots) {loots_info_ = loots;}
 	const std::vector<std::shared_ptr<Player>>& GetPlayers() { return players_;}
+	void DeleteRetiredPlayers(const std::vector<std::shared_ptr<model::Player>>& retired_players);
 private:
 	void InitLootGenerator(double loot_period, double loot_probability);
 	std::vector<std::shared_ptr<Player>> players_;
@@ -145,5 +146,4 @@ private:
 	model::Map* map_{};
 	std::shared_ptr<loot_gen::LootGenerator> lootGen_;
 };
-
 }

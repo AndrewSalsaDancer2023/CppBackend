@@ -38,10 +38,10 @@ int main(int argc, const char* argv[]) {
 	if(!args)
 		return EXIT_FAILURE;
 
-	//	setenv(LEAVE_GAME_DB_URL_ENV_NAME, LEAVE_GAME_DB_URL_ENV_VALUE, 1);
+//		setenv(LEAVE_GAME_DB_URL_ENV_NAME, LEAVE_GAME_DB_URL_ENV_VALUE, 1);
     try {
-   // 	 postgres::Database db{pqxx::connection{GetConfigFromEnv().db_url}};
-   // 	 db.CreateTable();
+    	 postgres::Database db{pqxx::connection{GetConfigFromEnv().db_url}};
+    	 db.CreateTable();
         // 1. Загружаем карту из файла и построить модель игры
         model::Game game = json_loader::LoadGame(args->config_file, args->www_root);
         if(args->tick_period > 0)

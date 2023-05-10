@@ -3,7 +3,7 @@
 #include "server_exceptions.h"
 #include "utils.h"
 #include "collision_detector.h"
-
+#include <iostream>
 constexpr double dS = 0.4;
 constexpr int millisescondsInSecond = 1000;
 constexpr double gathererWidth = 0.6;
@@ -64,11 +64,14 @@ namespace model
 		{
 			collision_detector::Gatherer gth({start.x, start.y}, {end.x, end.y}, gathererWidth);
 			res = gth;
-			idle_time = 0;
+			idle_time_ = 0;
 		}
 		else
-			idle_time += deltaTime;
+			idle_time_ += deltaTime;
 		play_time_ += deltaTime;
+
+//		std::cout << "idle_time: " << idle_time_ << std::endl;
+//		std::cout << "play_time_: " << play_time_ << std::endl;
 		return res;
 	}
 

@@ -4,11 +4,11 @@
 #include <algorithm>
 #include "utility_functions.h"
 #include <mutex>
-
+#include <iostream>
 namespace model {
 using namespace std::literals;
 
-std::mutex db_update_mutex;
+std::recursive_mutex db_update_mutex;
 
 void Map::AddOffice(Office office) {
     if (warehouse_id_to_index_.contains(office.GetId())) {
@@ -223,42 +223,73 @@ void Game::RestoreSessions(const model::GameSessionsStates& sessions)
 	});
 }
 
-void Game::FindExpiredSessions()
+void Game::HandleRetiredPlayers()
 {
 	std::lock_guard lg(db_update_mutex);
+	auto expired_players = FindExpiredPlayers();
+	SaveExpiredPlayers(expired_players);
+	DeleteExpiredPlayers(expired_players);
+}
 
-	std::vector<std::shared_ptr<GameSession>> sessions_;
-	for(auto it = sessions_.begin(); it != sessions_.end(); ++it)
+std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
+{
+	std::vector<RetiredSessionPlayers> res;
+
+	for(auto itSession = sessions_.begin(); itSession != sessions_.end(); ++itSession)
 	{
-		const auto& players = (*it)->GetPlayers();
+		RetiredSessionPlayers pairs;
+		const auto& players = (*itSession)->GetPlayers();
 		for(auto itPlayer = players.begin(); itPlayer != players.end(); ++itPlayer)
 		{
-			auto dog = (*itPlayer)->GetDog();
-			auto idle_time = dog->GetIdleTime();
-			if(idle_time >= dog_retierement_time_)
-			{
-				//mark player as expired
-
-			//	PlayerRecordItem record;
-
-					/*std::string id;
-					record.name = (*itPlayer)->GetName();
-					record.score = dog->GetScore();
-					record.playTime = 100;
-*/
-					SaveRetiredPlayer((*itPlayer)->GetName(), dog->GetScore(), dog->GetPlayTime());
-					/*struct PlayerTag {};
-					using PlayerId = util::TaggedUUID<detail::AuthorTag>;
-					PlayerId::New()*/
-
-			}
+				auto dog = (*itPlayer)->GetDog();
+				auto idle_time = dog->GetIdleTime();
+				if(idle_time >= dog_retierement_time_)
+				{
+//					std::cout << "Player retired!" << std::endl;
+					pairs.second.push_back(*itPlayer);
+				}
 		}
+		if(!pairs.second.empty())
+		{
+			pairs.first = *itSession;
+			res.push_back(pairs);
+		}
+	}
+	return res;
+}
+
+void Game::SaveExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players)
+{
+
+	for(auto itSesPlrs = expired_sessions_players.begin(); itSesPlrs != expired_sessions_players.end(); ++itSesPlrs)
+	{
+		for(auto itPlayer = itSesPlrs->second.begin(); itPlayer != itSesPlrs->second.end(); ++itPlayer)
+		{
+			auto dog = (*itPlayer)->GetDog();
+			SaveRetiredPlayer((*itPlayer)->GetName(), dog->GetScore(), dog->GetPlayTime());
+		}
+	}
+}
+
+void Game::DeleteExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players)
+{
+	for(auto itSesPlrs = expired_sessions_players.begin(); itSesPlrs != expired_sessions_players.end(); ++itSesPlrs)
+	{
+		auto itSes = std::find_if(sessions_.begin(), sessions_.end(), [itSesPlrs](auto& elem){
+			return elem == itSesPlrs->first;
+		});
+
+		if(itSes == sessions_.end())
+			continue;
+
+		(*itSes)->DeleteRetiredPlayers(itSesPlrs->second);
+		sessions_.erase(itSes);
 	}
 }
 
 std::vector<PlayerRecordItem> Game::GetRecords(int start, int max_items) const
 {
-	std::lock_guard lg(db_update_mutex);
+	//std::lock_guard lg(db_update_mutex);
 	return GetRetiredPlayers(start, max_items);
 }
 
