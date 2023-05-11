@@ -17,7 +17,7 @@ struct Args {
 struct AppConfig {
     std::string db_url;
 };
-
+const int MAX_DB_RECORDS = 100;
 constexpr const char LEAVE_GAME_DB_URL_ENV_NAME[]{"GAME_DB_URL"};
 //constexpr const char LEAVE_GAME_DB_URL_ENV_VALUE[]{"postgres://postgres:qazwsxedc@localhost:5432/leave_game_db"};
 
@@ -114,4 +114,14 @@ double ConvertPlayTimeToDouble(int play_time)
 	const int millisec_In_Second = 1000;
 	return static_cast<double>(play_time) / millisec_In_Second;
 }
+std::string GetRequestStringWithoutParameters(const std::string& request)
+{
+	std::string np_request = request;
+	auto pos = request.rfind('?');
+	if(pos != std::string::npos)
+		np_request = request.substr(0, pos);
+
+	return np_request;
+}
+
 }

@@ -2,6 +2,7 @@
 #include "game_session.h"
 #include <set>
 #include <boost/url.hpp>
+#include "utility_functions.h"
 using namespace boost::urls;
 
 namespace http_handler {
@@ -80,10 +81,11 @@ StringResponse MakeStringResponse(http::status status, std::string_view body, un
 
 bool ApiHandler::IsApiRequest(const std::string& request)
 {
+	std::string np_request = GetRequestStringWithoutParameters(request);
 	std::set<std::string> api_endpoints {game_endpoint, players_endpoint,  state_endpoint,
 										 action_endpoint, tick_endpoint, records_endpoint};
 
-	return api_endpoints.find(request) != api_endpoints.end();
+	return api_endpoints.find(np_request) != api_endpoints.end();
 }
 
 std::map<std::string, std::string> GetRequestParameters(const std::string& request)
@@ -104,7 +106,8 @@ std::map<std::string, std::string> GetRequestParameters(const std::string& reque
 StringResponse ApiHandler::HandleApiRequest(const std::string& request, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
 {
 	StringResponse resp;
-	auto it_handler = resp_map_.find(request);
+	std::string np_request = GetRequestStringWithoutParameters(request);
+	auto it_handler = resp_map_.find(np_request);
 	if(it_handler != resp_map_.end())
 	{
 		auto parameters = GetRequestParameters(request);
@@ -436,7 +439,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 std::pair<int, int> ParseParameters(const std::map<std::string, std::string>& params)
 {
 	 int start = 0;
-	 int max_items = 0;
+	 int max_items = MAX_DB_RECORDS;
 
 	 try
 	 {
@@ -460,7 +463,8 @@ StringResponse ApiHandler::HandleGetRecordsAction(http::verb method, std::string
 												  bool keep_alive, const std::map<std::string, std::string>& params)
 {
 	 StringResponse resp;
-
+//	 std::cout << "HandleGetRecordsAction:" << std::endl;
+//	 std::cout << std::endl;
 	 if((method != http::verb::get) && (method != http::verb::head))
 	 {
 		 resp = MakeStringResponse(http::status::method_not_allowed,
@@ -471,7 +475,9 @@ StringResponse ApiHandler::HandleGetRecordsAction(http::verb method, std::string
 		 return resp;
 	 }
 	 auto [start, max_items] = ParseParameters(params);
-	 if(max_items > 100)
+//	 std::cout << "start: " << start << "max items: " << max_items << std::endl;
+//	 std::cout << std::endl;
+	 if(max_items > MAX_DB_RECORDS)
 		 resp = MakeStringResponse(http::status::bad_request,
 		            							    json_serializer::MakeMappedResponce(invalidNameResp),
 		            								http_version, keep_alive, ContentType::APPLICATION_JSON,

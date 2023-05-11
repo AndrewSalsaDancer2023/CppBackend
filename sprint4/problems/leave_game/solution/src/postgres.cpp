@@ -22,8 +22,7 @@ void RetiredRepositoryImpl::SaveRetired(const model::PlayerRecordItem& retired)
 std::vector<model::PlayerRecordItem> RetiredRepositoryImpl::GetRetired(int start, int max_items)
 {
 	pqxx::read_transaction rd(connection_);
-	std::string query_text;
-	if(!max_items)
+/*	if(!max_items)
 	{
 		auto fmat = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms OFFSET %1%;") % start;
 		query_text = fmat.str();
@@ -31,12 +30,12 @@ std::vector<model::PlayerRecordItem> RetiredRepositoryImpl::GetRetired(int start
 	else
 	{
 		auto fmat = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT %1% OFFSET %2%;") % max_items % start;
-		query_text = fmat.str();
-	}
-    //std::string query_text = std::format("SELECT name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT {} OFFSET {};",max_items, start);
+		std::string query_text = fmat.str();
+	}*/
+	auto req = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT %1% OFFSET %2%;") % max_items % start;
 	std::vector<model::PlayerRecordItem> res;
 	// Выполняем запрос и итерируемся по строкам ответа
-	 for (auto [id, name, score, play_time_ms] : rd.query<std::string, std::string, int, int>(query_text))
+	 for (auto [id, name, score, play_time_ms] : rd.query<std::string, std::string, int, int>(req.str()))
 	 {
 		 model::PlayerRecordItem retired{id, name, score, play_time_ms};
 		 res.push_back(retired);

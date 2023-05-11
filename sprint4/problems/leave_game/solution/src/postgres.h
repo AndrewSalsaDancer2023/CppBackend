@@ -21,7 +21,7 @@ public:
     {}
 
     void SaveRetired(const model::PlayerRecordItem& retired);
-    std::vector<model::PlayerRecordItem> GetRetired(int start = 0, int max_items = 0);
+    std::vector<model::PlayerRecordItem> GetRetired(int start = 0, int max_items = 100);
 private:
     pqxx::connection& connection_;
 };
