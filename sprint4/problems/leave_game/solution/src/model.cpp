@@ -227,6 +227,8 @@ void Game::HandleRetiredPlayers()
 {
 	std::lock_guard lg(db_update_mutex);
 	auto expired_players = FindExpiredPlayers();
+	if(expired_players.empty())
+		return;
 	SaveExpiredPlayers(expired_players);
 	DeleteExpiredPlayers(expired_players);
 }
@@ -245,7 +247,7 @@ std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
 				auto idle_time = dog->GetIdleTime();
 				if(idle_time >= dog_retierement_time_)
 				{
-//					std::cout << "Player retired!" << std::endl;
+//					std::cout << "Player retired!, time:" << idle_time << std::endl;
 					pairs.second.push_back(*itPlayer);
 				}
 		}
@@ -253,6 +255,7 @@ std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
 		{
 			pairs.first = *itSession;
 			res.push_back(pairs);
+//			std::cout << "FindExpiredPlayers: " << pairs.second.size()<< std::endl;
 		}
 	}
 	return res;
@@ -267,12 +270,14 @@ void Game::SaveExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_
 		{
 			auto dog = (*itPlayer)->GetDog();
 			SaveRetiredPlayer((*itPlayer)->GetName(), dog->GetScore(), dog->GetPlayTime());
+//			std::cout << "SaveExpiredPlayers: " << (*itPlayer)->GetName()<< std::endl;
 		}
 	}
 }
 
 void Game::DeleteExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players)
 {
+//	std::cout << "DeleteExpiredPlayers BEFORE num sessions: " << sessions_.size() << std::endl;
 	for(auto itSesPlrs = expired_sessions_players.begin(); itSesPlrs != expired_sessions_players.end(); ++itSesPlrs)
 	{
 		auto itSes = std::find_if(sessions_.begin(), sessions_.end(), [itSesPlrs](auto& elem){
@@ -283,8 +288,13 @@ void Game::DeleteExpiredPlayers(const std::vector<RetiredSessionPlayers>& expire
 			continue;
 
 		(*itSes)->DeleteRetiredPlayers(itSesPlrs->second);
-		sessions_.erase(itSes);
+		if(!(*itSes)->GetNumPlayers())
+		{
+			const auto new_end{std::remove(std::begin(sessions_), std::end(sessions_), *itSes)};
+			sessions_.erase(new_end, std::end(sessions_));
+		}
 	}
+//	std::cout << "DeleteExpiredPlayers AFTER deletion num sessions: " << sessions_.size() << std::endl;
 }
 
 std::vector<PlayerRecordItem> Game::GetRecords(int start, int max_items) const

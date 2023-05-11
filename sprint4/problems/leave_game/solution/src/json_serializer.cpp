@@ -2,11 +2,11 @@
 #include <utility>
 #include <boost/json.hpp>
 #include "game_session.h"
-//#include "utility_functions.h"
 
 namespace json = boost::json;
 using namespace std::literals;
 
+const int MILLISECONDS_IN_SECOND = 1000;
 namespace json_serializer {
 
    std::string MakeErrorResponce(const std::string& codeMessage, const std::string& errorMessage)
@@ -268,7 +268,7 @@ namespace json_serializer {
 
             map_obj[ "name" ] = record.name;
     	    map_obj[ "score" ] = record.score;
-    	    map_obj[ "playTime" ] = (double)record.playTime / 1000; //ConvertPlayTimeToDouble(record.playTime);
+    	    map_obj[ "playTime" ] = (double)record.playTime / MILLISECONDS_IN_SECOND;
     	    map_ar.emplace_back(map_obj);
         }
 

@@ -5,6 +5,7 @@
 #include "postgres.h"
 #include "connection_engine.h"
 #include <iostream>
+
 struct Args {
     int tick_period{0};
     int save_period{0};
@@ -18,8 +19,6 @@ struct AppConfig {
     std::string db_url;
 };
 const int MAX_DB_RECORDS = 100;
-constexpr const char LEAVE_GAME_DB_URL_ENV_NAME[]{"GAME_DB_URL"};
-//constexpr const char LEAVE_GAME_DB_URL_ENV_VALUE[]{"postgres://postgres:qazwsxedc@localhost:5432/leave_game_db"};
 
 namespace {
 
@@ -94,9 +93,9 @@ void SaveRetiredPlayer(const std::string& player_name, int score, int play_time)
 	std::cout << "play_time_: " << record.playTime << std::endl;
 */
 	ConnectionPoolSingleton* inst = ConnectionPoolSingleton::getInstance();
-	auto* conn_pool = inst->GetPool();//inst->GetPool();
+	auto* conn_pool = inst->GetPool();
 	auto conn = conn_pool->GetConnection();
-	postgres::RetiredRepositoryImpl rep{*conn};//{pqxx::connection{GetConfigFromEnv().db_url}};
+	postgres::RetiredRepositoryImpl rep{*conn};
 	rep.SaveRetired(record);
 }
 

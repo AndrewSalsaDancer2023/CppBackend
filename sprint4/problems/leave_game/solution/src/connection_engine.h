@@ -4,6 +4,9 @@
 #include <condition_variable>
 #include <thread>
 
+constexpr const char LEAVE_GAME_DB_URL_ENV_NAME[]{"GAME_DB_URL"};
+//constexpr const char LEAVE_GAME_DB_URL_ENV_VALUE[]{"postgres://postgres:qazwsxedc@localhost:5432/leave_game_db"};
+
 class ConnectionPool {
     using PoolType = ConnectionPool;
     using ConnectionPtr = std::shared_ptr<pqxx::connection>;
@@ -88,12 +91,10 @@ private:
 	static ConnectionPoolSingleton* instance;
 	ConnectionPool *pool;
 	ConnectionPoolSingleton() {
-		constexpr const char GAME_DB_NAME[]{"GAME_DB_URL"};
-		const auto* db_url = std::getenv(GAME_DB_NAME);
+		const auto* db_url = std::getenv(LEAVE_GAME_DB_URL_ENV_NAME);
 		const unsigned num_threads = std::max(1u, std::thread::hardware_concurrency());
 		pool = new ConnectionPool{num_threads, [db_url] {
 		                                     auto conn = std::make_shared<pqxx::connection>(db_url);
-		                                    // conn->prepare("select_one", "SELECT 1;");
 		                                     return conn;
 		                                 }};
 	}
@@ -114,7 +115,6 @@ public:
 		instance = new ConnectionPoolSingleton();
 	}
 };
-//ConnectionPool* ConnectionPoolSingleton::pool = nullptr;
 ConnectionPoolSingleton* ConnectionPoolSingleton::instance = nullptr;
 std::once_flag ConnectionPoolSingleton::initInstanceFlag;
 }
