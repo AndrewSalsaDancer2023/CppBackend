@@ -50,10 +50,13 @@ namespace model
 	std::optional<collision_detector::Gatherer> Dog::Move(int deltaTime)
 	{
 		std::optional<collision_detector::Gatherer> res;
-
+	//	std::cout << "Dog::Move: " << std::endl;
 		if(direction_ == DogDirection::STOP)
+		{
+			idle_time_ += deltaTime;
+			play_time_ += deltaTime;
 			return res;
-
+		}
 		DogPosition start =  GetPosition();
 		navigator_->MoveDog(direction_, speed_, deltaTime);
 

@@ -416,7 +416,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	 {
 		 try{
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
-
+//	  			std::cout << "HandleTickAction:" << std::endl;
 	  			game_.MoveDogs(deltaTime);
 	  			game_.GenerateLoot(deltaTime);
 	  			game_.SaveSessions(deltaTime);
@@ -477,12 +477,12 @@ StringResponse ApiHandler::HandleGetRecordsAction(http::verb method, std::string
 	 auto [start, max_items] = ParseParameters(params);
 //	 std::cout << "start: " << start << "max items: " << max_items << std::endl;
 //	 std::cout << std::endl;
-	 if(max_items > MAX_DB_RECORDS)
+/*	 if(max_items > MAX_DB_RECORDS)
 		 resp = MakeStringResponse(http::status::bad_request,
 		            							    json_serializer::MakeMappedResponce(invalidNameResp),
 		            								http_version, keep_alive, ContentType::APPLICATION_JSON,
 													{{http::field::cache_control, "no-cache"sv}});
-	 else
+	 else*/
 		 resp = MakeStringResponse(http::status::ok, json_serializer::MakeRecordsResponce(game_, start, max_items), http_version, keep_alive,
 	 	  									  ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
