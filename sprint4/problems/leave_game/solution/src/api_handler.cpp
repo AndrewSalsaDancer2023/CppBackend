@@ -214,7 +214,7 @@ StringResponse ApiHandler::HandleAuthRequest(const std::string& body, unsigned h
     									   keep_alive, ContentType::APPLICATION_JSON,
 										   {{http::field::cache_control, "no-cache"sv}});
 
-    		if((game_.GetNumPlayersInAllSessions() == 1) && ticker_)
+    		if(ticker_ && !ticker_->HasStarted())
     		{
     			ticker_->Start();
     		}
@@ -417,8 +417,8 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 		 try{
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
 //	  			std::cout << "HandleTickAction:" << std::endl;
-	  			game_.MoveDogs(deltaTime);
 	  			game_.GenerateLoot(deltaTime);
+	  			game_.MoveDogs(deltaTime);
 	  			game_.SaveSessions(deltaTime);
 	  			game_.HandleRetiredPlayers();
 	  			resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive,

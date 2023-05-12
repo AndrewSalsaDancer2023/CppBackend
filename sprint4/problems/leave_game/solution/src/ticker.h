@@ -1,5 +1,4 @@
 #pragma once
-
 namespace net = boost::asio;
 namespace sys = boost::system;
 
@@ -13,13 +12,14 @@ public:
     Ticker(Strand strand, std::chrono::milliseconds period, Handler handler)
     :strand_(strand), period_(period), handler_(handler)  {
     }
-
+    bool HasStarted() {return has_started_;}
     void Start() {
         last_tick_ = std::chrono::steady_clock::now();
         /* Выполнить SchedulTick внутри strand_ */
         net::dispatch(strand_, [self = shared_from_this()] {
              self->ScheduleTick();
          });
+        has_started_ = true;
     }
 private:
     void ScheduleTick() {
@@ -45,5 +45,6 @@ private:
     std::chrono::milliseconds period_;
     Handler handler_;
     std::chrono::time_point<std::chrono::steady_clock> last_tick_;
+    bool has_started_{false};
 };
 }
