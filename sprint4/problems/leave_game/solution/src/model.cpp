@@ -70,8 +70,7 @@ size_t Game::GetNumPlayersInAllSessions()
 
 
 Game::PlayerAuthInfo Game::AddPlayer(const std::string& map_id, const std::string& player_name) {
-    const Map* mapToAdd = FindMap(Map::Id(map_id));
-
+   const Map* mapToAdd = FindMap(Map::Id(map_id));
    if(player_name.empty()) 
 	    throw EmptyNameException();
 
@@ -157,6 +156,7 @@ std::shared_ptr<GameSession> Game::GetSessionWithAuthInfo(const std::string& aut
 
 void Game::MoveDogs(int deltaTime)
 {
+//	std::cout << "Game::MoveDogs delta: " << deltaTime << std::endl;
 	std::for_each(sessions_.begin(), sessions_.end(),[deltaTime](std::shared_ptr<GameSession>& session){
 		session->MoveDogs(deltaTime);
 	});
@@ -229,8 +229,8 @@ void Game::HandleRetiredPlayers()
 	auto expired_players = FindExpiredPlayers();
 	if(expired_players.empty())
 		return;
-	SaveExpiredPlayers(expired_players);
-	DeleteExpiredPlayers(expired_players);
+	//SaveExpiredPlayers(expired_players);
+	//DeleteExpiredPlayers(expired_players);
 }
 
 std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
@@ -247,6 +247,7 @@ std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
 				auto idle_time = dog->GetIdleTime();
 				if(idle_time >= dog_retierement_time_)
 				{
+//					std::cout << "Player retired!, idle_time: " << idle_time << "Retired: " << dog_retierement_time_ << std::endl;
 //					std::cout << "Player retired!, time:" << idle_time << std::endl;
 					pairs.second.push_back(*itPlayer);
 				}
