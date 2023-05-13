@@ -209,6 +209,10 @@ StringResponse ApiHandler::HandleAuthRequest(const std::string& body, unsigned h
     	try
     	{
     		auto [token, playerId] = game_.AddPlayer(respMap["mapId"], respMap["userName"]);
+
+    		auto player =  game_.GetPlayerWithAuthToken(token);
+    		player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
+
     		auto resp = MakeStringResponse(http::status::ok,
     									   json_serializer::MakeAuthResponce(token, playerId), http_version,
     									   keep_alive, ContentType::APPLICATION_JSON,
@@ -376,12 +380,12 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
     		return resp;
 		}
 
-	auto player =  game_.GetPlayerWithAuthToken(auth_token);
 	auto session =  game_.GetSessionWithAuthInfo(auth_token);
 	auto map = game_.FindMap(model::Map::Id(session->GetMap()));
 	auto map_speed = map->GetDogSpeed();
-
-	player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
+	auto player =  game_.GetPlayerWithAuthToken(auth_token);
+//	std::cout << "HandlePlayerAction: SpawnDogInMap" << std::endl;
+	//player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
 	DogDirection dir =  json_loader::GetMoveDirection(body);
 	player->GetDog()->SetSpeed(dir, map_speed > 0.0 ? map_speed : game_.GetDefaultDogSpeed());
 

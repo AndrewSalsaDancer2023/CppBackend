@@ -32,9 +32,9 @@ namespace model
 
 	void Dog::SetSpeed(DogDirection dir, double speed)
 	{
-		std::map<DogDirection, DogSpeed> velMap{{DogDirection::EAST, {speed, 0}}, {DogDirection::WEST, {-speed, 0}},
-												{DogDirection::SOUTH, {0, speed}}, {DogDirection::NORTH, {0, -speed}},
-												{DogDirection::STOP, {0, 0}}};
+		std::map<DogDirection, DogSpeed> velMap{{DogDirection::EAST, {speed, 0.0}}, {DogDirection::WEST, {-speed, 0.0}},
+												{DogDirection::SOUTH, {0.0, speed}}, {DogDirection::NORTH, {0.0, -speed}},
+												{DogDirection::STOP, {0.0, 0.0}}};
 
 		auto find_vel = velMap.find(dir);
 		if(find_vel == velMap.end())
@@ -45,18 +45,22 @@ namespace model
 
 		speed_ = find_vel->second;
 		navigator_->SetDogSpeed(speed_);
+//		std::cout << "Dog::SetSpeed: " << speed_.vx << "vy:  " << speed_.vy << std::endl;
 	}
 
 	std::optional<collision_detector::Gatherer> Dog::Move(int deltaTime)
 	{
 		std::optional<collision_detector::Gatherer> res;
-	//	std::cout << "Dog::Move: " << std::endl;
-		if(direction_ == DogDirection::STOP)
+
+		if((std::abs(speed_.vx-0.0) <= std::numeric_limits<double>::epsilon()) &&
+		   (std::abs(speed_.vy-0.0) <= std::numeric_limits<double>::epsilon()))
 		{
 			idle_time_ += deltaTime;
 			play_time_ += deltaTime;
+//			std::cout << "Dog::Move zero speed: " << std::endl;
 			return res;
 		}
+
 		DogPosition start =  GetPosition();
 		navigator_->MoveDog(direction_, speed_, deltaTime);
 
@@ -67,14 +71,19 @@ namespace model
 		{
 			collision_detector::Gatherer gth({start.x, start.y}, {end.x, end.y}, gathererWidth);
 			res = gth;
-			idle_time_ = 0;
+//			idle_time_ = 0;
 		}
-		else
-			idle_time_ += deltaTime;
+/*		else
+			idle_time_ += deltaTime;*/
 		play_time_ += deltaTime;
-
-//		std::cout << "idle_time: " << idle_time_ << std::endl;
-//		std::cout << "play_time_: " << play_time_ << std::endl;
+		auto res_speed = GetSpeed();
+		if((std::abs(res_speed.vx-0.0) <= std::numeric_limits<double>::epsilon()) &&
+		    (std::abs(res_speed.vy-0.0) <= std::numeric_limits<double>::epsilon()))
+				{
+					idle_time_ += deltaTime;
+				}
+		else
+			idle_time_ = 0;
 		return res;
 	}
 

@@ -93,9 +93,9 @@ public:
 	void SetScore(int score){ score_ = score;}
 	unsigned GetBagCapacity() { return bag_capacity_;}
 	void SetBagCapacity(unsigned capacity) {bag_capacity_ = capacity;}
-	int GetIdleTime() { return idle_time_; }
-	int GetPlayTime() { return play_time_;}
-	void SetPlayTime(int time) { play_time_ = time; }
+	unsigned int GetIdleTime() { return idle_time_; }
+	unsigned int GetPlayTime() { return play_time_;}
+	void SetPlayTime(unsigned int time) { play_time_ = time; }
 private:
 	DogDirection direction_;
 	DogSpeed speed_{0.0, 0.0};
@@ -103,9 +103,9 @@ private:
 	std::shared_ptr<model::DogNavigator> navigator_;
 	std::vector<model::LootInfo> gathered_loots_;
 	unsigned bag_capacity_{};
-	int score_{};
-	unsigned int idle_time_{};
-	int play_time_{};
+	int score_{0};
+	unsigned int idle_time_{0};
+	unsigned int play_time_{0};
 };
 }
 

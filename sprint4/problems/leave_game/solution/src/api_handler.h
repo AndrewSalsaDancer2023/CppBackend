@@ -44,13 +44,13 @@ public:
         InitApiRequestHandlers();
         if(game_.GetTickPeriod() > 0)
         {
-        ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(game.GetTickPeriod()),
-        								   [&game](std::chrono::milliseconds ticks)
+        	ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(game_.GetTickPeriod()),
+        								   [this](std::chrono::milliseconds ticks)
 										   {
-        										game.GenerateLoot(ticks.count());
-        										game.MoveDogs(ticks.count());
-        										game.SaveSessions(ticks.count());
-        										game.HandleRetiredPlayers();
+        										game_.GenerateLoot(ticks.count());
+        										game_.MoveDogs(ticks.count());
+        										game_.SaveSessions(ticks.count());
+        										game_.HandleRetiredPlayers();
 										   });
         }
     }
