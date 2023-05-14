@@ -42,27 +42,28 @@ namespace model
 
 		if(dir != DogDirection::STOP)
 			direction_ = dir;
-
-		speed_ = find_vel->second;
-		navigator_->SetDogSpeed(speed_);
+		idle_time_= 0;
+		navigator_->SetDogSpeed(find_vel->second);
 //		std::cout << "Dog::SetSpeed: " << speed_.vx << "vy:  " << speed_.vy << std::endl;
 	}
 
 	std::optional<collision_detector::Gatherer> Dog::Move(int deltaTime)
 	{
 		std::optional<collision_detector::Gatherer> res;
-
-		if((std::abs(speed_.vx-0.0) <= std::numeric_limits<double>::epsilon()) &&
-		   (std::abs(speed_.vy-0.0) <= std::numeric_limits<double>::epsilon()))
+		play_time_ += deltaTime;
+		auto speed = navigator_->GetDogSpeed();
+		if((std::abs(speed.vx) <= 0.0001) && (std::abs(speed.vy) <= 0.0001))
 		{
 			idle_time_ += deltaTime;
-			play_time_ += deltaTime;
-//			std::cout << "Dog::Move zero speed: " << std::endl;
+//			std::cout << "Dog::Move vx: "<< speed.vx << "v.y: " << speed.vy << std::endl;
+//			std::cout << "Dog::Move zero speed, idle time: " << idle_time_ << std::endl;
 			return res;
 		}
+		else
+			idle_time_= 0;
 
 		DogPosition start =  GetPosition();
-		navigator_->MoveDog(direction_, speed_, deltaTime);
+		navigator_->MoveDog(direction_, deltaTime);
 
 		DogPosition end =  GetPosition();
 
@@ -74,16 +75,16 @@ namespace model
 //			idle_time_ = 0;
 		}
 /*		else
-			idle_time_ += deltaTime;*/
-		play_time_ += deltaTime;
+			idle_time_ += deltaTime;
+		play_time_ += deltaTime;*/
 		auto res_speed = GetSpeed();
-		if((std::abs(res_speed.vx-0.0) <= std::numeric_limits<double>::epsilon()) &&
+/*		if((std::abs(res_speed.vx-0.0) <= std::numeric_limits<double>::epsilon()) &&
 		    (std::abs(res_speed.vy-0.0) <= std::numeric_limits<double>::epsilon()))
 				{
 					idle_time_ += deltaTime;
 				}
 		else
-			idle_time_ = 0;
+			idle_time_ = 0;*/
 		return res;
 	}
 
@@ -455,14 +456,13 @@ namespace model
 	        dog_info_.curr_position = newPos;
 	    }
 
-
-	void DogNavigator::MoveDog(DogDirection direction, DogSpeed speed, int time)
+	void DogNavigator::MoveDog(DogDirection direction, int time)
 	{
-	    dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
 	    double dt = static_cast<double>(time) / millisescondsInSecond;
 
-	    DogPosition newPos{dog_info_.curr_position.x + dt * speed.vx, dog_info_.curr_position.y + dt * speed.vy};
+	    DogPosition newPos{dog_info_.curr_position.x + dt * dog_info_.curr_speed.vx,
+	    				   dog_info_.curr_position.y + dt * dog_info_.curr_speed.vy};
 
 	    if(road.IsHorizontal())
 	    {

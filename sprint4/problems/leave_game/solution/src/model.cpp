@@ -229,14 +229,14 @@ void Game::HandleRetiredPlayers()
 	auto expired_players = FindExpiredPlayers();
 	if(expired_players.empty())
 		return;
-	//SaveExpiredPlayers(expired_players);
-	//DeleteExpiredPlayers(expired_players);
+	SaveExpiredPlayers(expired_players);
+	DeleteExpiredPlayers(expired_players);
 }
 
 std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
 {
 	std::vector<RetiredSessionPlayers> res;
-
+//	std::cout << "FindExpiredPlayers time:" << dog_retierement_time_ << std::endl;
 	for(auto itSession = sessions_.begin(); itSession != sessions_.end(); ++itSession)
 	{
 		RetiredSessionPlayers pairs;
@@ -247,8 +247,9 @@ std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
 				auto idle_time = dog->GetIdleTime();
 				if(idle_time >= dog_retierement_time_)
 				{
-//					std::cout << "Player retired!, idle_time: " << idle_time << "Retired: " << dog_retierement_time_ << std::endl;
-//					std::cout << "Player retired!, time:" << idle_time << std::endl;
+/*					std::cout << std::endl;
+					std::cout << "Player retired!, idle_time: " << idle_time << "Retired: " << dog_retierement_time_ << std::endl;
+					std::cout << std::endl;*/
 					pairs.second.push_back(*itPlayer);
 				}
 		}

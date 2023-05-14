@@ -43,7 +43,7 @@ public:
         }
     }
 public:
-    void MoveDog(DogDirection direction, DogSpeed speed, int time);
+    void MoveDog(DogDirection direction, int time);
     DogPos GetDogPosOnMap() { return  dog_info_;}
     void SetDogPosOnMap(const DogPos& position) { dog_info_ = position;}
     DogPosition GetDogPosition() { return dog_info_.curr_position;}
@@ -98,7 +98,7 @@ public:
 	void SetPlayTime(unsigned int time) { play_time_ = time; }
 private:
 	DogDirection direction_;
-	DogSpeed speed_{0.0, 0.0};
+//	DogSpeed speed_{0.0, 0.0};
 	const model::Map* map_;
 	std::shared_ptr<model::DogNavigator> navigator_;
 	std::vector<model::LootInfo> gathered_loots_;
