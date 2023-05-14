@@ -38,7 +38,7 @@ int main(int argc, const char* argv[]) {
 	if(!args)
 		return EXIT_FAILURE;
 
-//		setenv(LEAVE_GAME_DB_URL_ENV_NAME, LEAVE_GAME_DB_URL_ENV_VALUE, 1);
+
     try {
     	 postgres::Database db{pqxx::connection{GetConfigFromEnv().db_url}};
     	 db.CreateTable();
@@ -55,10 +55,7 @@ int main(int argc, const char* argv[]) {
         	DeserializeSessions(game);
         }
         game.SetSpawnInRandomPoint(args->spawn_random_points);
-        if(args->save_period > 0)
-        {
-        	json_loader::SetSaveGameParameters(args->save_file, args->save_period);
-        }
+
         // 2. Инициализируем io_context
         const unsigned num_threads = std::thread::hardware_concurrency();
         net::io_context ioc(num_threads);

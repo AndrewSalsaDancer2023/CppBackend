@@ -134,8 +134,8 @@ void SerializeSessions(const model::Game& game)
 	 std::stringstream ss;
 	 OutputArchive oa{ss};
 	 oa << *game.GetGameSessionsStates();
-	 //oa << session.GetState();
-	 std::ofstream ofs(game.GetSavePath());//"filename.arch");
+
+	 std::ofstream ofs(game.GetSavePath());
 	 ofs << ss.str();
 }
 
@@ -173,59 +173,3 @@ model::GameSessionState DeserializeGameSession()
 
 }  // namespace serialization
 
-/*
-namespace serialization {
-
-class DogRepr {
-public:
-    DogRepr() = default;
-
-    explicit DogRepr(const model::Dog& dog)
-        : id_(dog.GetId())
-        , name_(dog.GetName())
-        , pos_(dog.GetPosition())
-        , bag_capacity_(dog.GetBagCapacity())
-        , speed_(dog.GetSpeed())
-        , direction_(dog.GetDirection())
-        , score_(dog.GetScore())
-        , bag_content_(dog.GetBagContent()) {
-    }
-
-    [[nodiscard]] model::Dog Restore() const {
-        model::Dog dog{id_, name_, pos_, bag_capacity_};
-        dog.SetSpeed(speed_);
-        dog.SetDirection(direction_);
-        dog.AddScore(score_);
-        for (const auto& item : bag_content_) {
-            if (!dog.PutToBag(item)) {
-                throw std::runtime_error("Failed to put bag content");
-            }
-        }
-        return dog;
-    }
-
-    template <typename Archive>
-    void serialize(Archive& ar, [[maybe_unused]] const unsigned version) {
-        ar&* id_;
-        ar& name_;
-        ar& pos_;
-        ar& bag_capacity_;
-        ar& speed_;
-        ar& direction_;
-        ar& score_;
-        ar& bag_content_;
-    }
-
-private:
-    model::Dog::Id id_ = model::Dog::Id{0u};
-    std::string name_;
-    geom::Point2D pos_;
-    size_t bag_capacity_ = 0;
-    geom::Vec2D speed_;
-    model::Direction direction_ = model::Direction::NORTH;
-    model::Score score_ = 0;
-    model::Dog::BagContent bag_content_
-};
-
-}  // namespace serialization
-*/

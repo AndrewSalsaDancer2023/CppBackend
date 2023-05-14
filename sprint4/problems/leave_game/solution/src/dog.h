@@ -1,7 +1,6 @@
 #pragma once
 #include "model.h"
 #include <optional>
-#include <iostream>
 
 using namespace model;
 
@@ -98,7 +97,6 @@ public:
 	void SetPlayTime(unsigned int time) { play_time_ = time; }
 private:
 	DogDirection direction_;
-//	DogSpeed speed_{0.0, 0.0};
 	const model::Map* map_;
 	std::shared_ptr<model::DogNavigator> navigator_;
 	std::vector<model::LootInfo> gathered_loots_;

@@ -272,9 +272,4 @@ boost::json::string directionUp = "U";
 
     }
 
-    void SetSaveGameParameters(const std::filesystem::path& save_path, int save_period)
-    {
-
-    }
-
 }  // namespace json_loader

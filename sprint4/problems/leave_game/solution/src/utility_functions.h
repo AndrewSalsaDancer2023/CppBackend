@@ -4,7 +4,6 @@
 #include "tagged_uuid.h"
 #include "postgres.h"
 #include "connection_engine.h"
-#include <iostream>
 
 struct Args {
     int tick_period{0};
@@ -86,12 +85,7 @@ void SaveRetiredPlayer(const std::string& player_name, int score, int play_time)
 	using PlayerId = util::TaggedUUID<PlayerTag>;
 
 	model::PlayerRecordItem record{PlayerId::New().ToString(), player_name, score, play_time};
-/*
-	std::cout << "id: " << record.id << std::endl;
-	std::cout << "name: " << record.name << std::endl;
-	std::cout << "score: " << record.score << std::endl;
-	std::cout << "play_time_: " << record.playTime << std::endl;
-*/
+
 	ConnectionPoolSingleton* inst = ConnectionPoolSingleton::getInstance();
 	auto* conn_pool = inst->GetPool();
 	auto conn = conn_pool->GetConnection();

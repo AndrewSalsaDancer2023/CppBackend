@@ -8,5 +8,4 @@ model::Game LoadGame(const std::filesystem::path& json_path, const std::filesyst
 std::map<std::string, std::string> ParseJoinGameRequest(const std::string& body);
 DogDirection GetMoveDirection(const std::string& body);
 int ParseDeltaTimeRequest(const std::string& body);
-void SetSaveGameParameters(const std::filesystem::path& save_path, int save_period);
 }  // namespace json_loader

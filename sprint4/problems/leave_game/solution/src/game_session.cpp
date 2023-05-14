@@ -231,7 +231,6 @@ PlayerState Player::GetState()
 
 void GameSession::DeleteRetiredPlayers(const std::vector<std::shared_ptr<Player>>& retired_players)
 {
-//	std::cout << "DeleteRetiredPlayers before deletion num:" << players_.size() << std::endl;
 	for(auto it = retired_players.begin(); it != retired_players.end(); ++it)
 	{
 		auto findIt = std::find(std::begin(players_), std::end(players_), *it);
@@ -241,7 +240,6 @@ void GameSession::DeleteRetiredPlayers(const std::vector<std::shared_ptr<Player>
 			players_.erase(new_end, std::end(players_));
 		}
 	}
-//	std::cout << "DeleteRetiredPlayers after deletion num:" << players_.size() << std::endl;
 }
 
 }

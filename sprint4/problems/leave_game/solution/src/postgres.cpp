@@ -22,16 +22,6 @@ void RetiredRepositoryImpl::SaveRetired(const model::PlayerRecordItem& retired)
 std::vector<model::PlayerRecordItem> RetiredRepositoryImpl::GetRetired(int start, int max_items)
 {
 	pqxx::read_transaction rd(connection_);
-/*	if(!max_items)
-	{
-		auto fmat = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms OFFSET %1%;") % start;
-		query_text = fmat.str();
-	}
-	else
-	{
-		auto fmat = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT %1% OFFSET %2%;") % max_items % start;
-		std::string query_text = fmat.str();
-	}*/
 	auto req = boost::format("SELECT id, name, score, play_time_ms FROM retired_players ORDER BY score DESC, play_time_ms LIMIT %1% OFFSET %2%;") % max_items % start;
 	std::vector<model::PlayerRecordItem> res;
 	// Выполняем запрос и итерируемся по строкам ответа

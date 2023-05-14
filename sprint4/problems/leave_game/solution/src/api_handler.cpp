@@ -95,10 +95,8 @@ std::map<std::string, std::string> GetRequestParameters(const std::string& reque
 
 	for (auto param: u.params())
 	{
-//	    std::cout << param.key << ": " << param.value << "\n";
 	    result[param.key] = param.value;
 	}
-//	std::cout << "\n";
 
 	return result;
 }
@@ -384,8 +382,7 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
 	auto map = game_.FindMap(model::Map::Id(session->GetMap()));
 	auto map_speed = map->GetDogSpeed();
 	auto player =  game_.GetPlayerWithAuthToken(auth_token);
-//	std::cout << "HandlePlayerAction: SpawnDogInMap" << std::endl;
-	//player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
+
 	DogDirection dir =  json_loader::GetMoveDirection(body);
 	player->GetDog()->SetSpeed(dir, map_speed > 0.0 ? map_speed : game_.GetDefaultDogSpeed());
 
@@ -420,7 +417,7 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 	 {
 		 try{
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
-//	  			std::cout << "HandleTickAction:" << std::endl;
+
 	  			game_.GenerateLoot(deltaTime);
 	  			game_.MoveDogs(deltaTime);
 	  			game_.SaveSessions(deltaTime);
@@ -467,8 +464,7 @@ StringResponse ApiHandler::HandleGetRecordsAction(http::verb method, std::string
 												  bool keep_alive, const std::map<std::string, std::string>& params)
 {
 	 StringResponse resp;
-//	 std::cout << "HandleGetRecordsAction:" << std::endl;
-//	 std::cout << std::endl;
+
 	 if((method != http::verb::get) && (method != http::verb::head))
 	 {
 		 resp = MakeStringResponse(http::status::method_not_allowed,
@@ -479,8 +475,7 @@ StringResponse ApiHandler::HandleGetRecordsAction(http::verb method, std::string
 		 return resp;
 	 }
 	 auto [start, max_items] = ParseParameters(params);
-//	 std::cout << "start: " << start << "max items: " << max_items << std::endl;
-//	 std::cout << std::endl;
+
 	 if(max_items > MAX_DB_RECORDS)
 		 resp = MakeStringResponse(http::status::bad_request,
 		            							    json_serializer::MakeMappedResponce(invalidNameResp),

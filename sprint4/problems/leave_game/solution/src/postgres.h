@@ -4,16 +4,7 @@
 #include "model.h"
 
 namespace postgres {
-/*
-class RetiredRepository {
-public:
-    virtual void Save(const model::PlayerRecordItem& retired) = 0;
-    virtual std::vector<model::PlayerRecordItem> GetRetired() = 0;
-protected:
-    ~RetiredRepository() = default;
-};
-*/
-class RetiredRepositoryImpl //: public RetiredRepository {
+class RetiredRepositoryImpl
 {
 public:
     explicit RetiredRepositoryImpl(pqxx::connection& connection)
@@ -29,15 +20,9 @@ private:
 class Database {
 public:
     explicit Database(pqxx::connection connection);
-//
-//    RetiredRepositoryImpl& GetRetired() {
-//        return retired_;
-//    }
-
     void CreateTable();
 private:
     pqxx::connection connection_;
- //   RetiredRepositoryImpl retired_{connection_};
 };
 
 }  // namespace postgres

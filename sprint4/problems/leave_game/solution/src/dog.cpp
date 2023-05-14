@@ -3,11 +3,11 @@
 #include "server_exceptions.h"
 #include "utils.h"
 #include "collision_detector.h"
-#include <iostream>
+
 constexpr double dS = 0.4;
 constexpr int millisescondsInSecond = 1000;
 constexpr double gathererWidth = 0.6;
-
+constexpr double epsilon = 0.0001;
 namespace model
 {
     std::string ConvertDogDirectionToString(DogDirection direction)
@@ -44,7 +44,6 @@ namespace model
 			direction_ = dir;
 		idle_time_= 0;
 		navigator_->SetDogSpeed(find_vel->second);
-//		std::cout << "Dog::SetSpeed: " << speed_.vx << "vy:  " << speed_.vy << std::endl;
 	}
 
 	std::optional<collision_detector::Gatherer> Dog::Move(int deltaTime)
@@ -52,11 +51,9 @@ namespace model
 		std::optional<collision_detector::Gatherer> res;
 		play_time_ += deltaTime;
 		auto speed = navigator_->GetDogSpeed();
-		if((std::abs(speed.vx) <= 0.0001) && (std::abs(speed.vy) <= 0.0001))
+		if((std::abs(speed.vx) <= epsilon) && (std::abs(speed.vy) <= epsilon))
 		{
 			idle_time_ += deltaTime;
-//			std::cout << "Dog::Move vx: "<< speed.vx << "v.y: " << speed.vy << std::endl;
-//			std::cout << "Dog::Move zero speed, idle time: " << idle_time_ << std::endl;
 			return res;
 		}
 		else
@@ -67,24 +64,12 @@ namespace model
 
 		DogPosition end =  GetPosition();
 
-		if((std::abs(start.x-end.x) > std::numeric_limits<double>::epsilon()) ||
-		   (std::abs(start.y-end.y) > std::numeric_limits<double>::epsilon()))
+		if((std::abs(start.x-end.x) > epsilon) || (std::abs(start.y-end.y) > epsilon))
 		{
 			collision_detector::Gatherer gth({start.x, start.y}, {end.x, end.y}, gathererWidth);
 			res = gth;
-//			idle_time_ = 0;
 		}
-/*		else
-			idle_time_ += deltaTime;
-		play_time_ += deltaTime;*/
-		auto res_speed = GetSpeed();
-/*		if((std::abs(res_speed.vx-0.0) <= std::numeric_limits<double>::epsilon()) &&
-		    (std::abs(res_speed.vy-0.0) <= std::numeric_limits<double>::epsilon()))
-				{
-					idle_time_ += deltaTime;
-				}
-		else
-			idle_time_ = 0;*/
+
 		return res;
 	}
 
