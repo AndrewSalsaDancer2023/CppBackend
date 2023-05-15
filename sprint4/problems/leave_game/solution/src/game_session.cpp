@@ -1,11 +1,11 @@
 #include "game_session.h"
 #include "player_tokens.h"
-#include "model.h"
+#include "dog.h"
 #include "server_exceptions.h"
 #include "loot_generator.h"
 #include "utils.h"
 #include "collision_detector.h"
-
+#include <algorithm>
 constexpr double baseWidth = 0.5;
 constexpr double lootWidth = 0.0;
 
@@ -38,7 +38,7 @@ std::shared_ptr<Player> GameSession::AddPlayer(const std::string player_name, mo
 
    players_.push_back(player);
    player_id++;
-   
+
    return players_.back();
 }
 
@@ -72,7 +72,7 @@ const std::vector<std::shared_ptr<Player>> GameSession::GetAllPlayers()
 	return players_;
 }
 
-void AddLootToDog(std::shared_ptr<model::Dog> dog, std::vector<LootInfo>& loots, const std::vector<collision_detector::Item>& items)
+void AddLootToDog(std::shared_ptr<Dog> dog, std::vector<LootInfo>& loots, const std::vector<collision_detector::Item>& items)
 {
 	for(const auto& item : items)
 	{
@@ -209,4 +209,37 @@ void GameSession::GenerateLoot(int deltaTime, const Map* pMap)
 		num_loot_to_generate--;
 	}
 }
+
+GameSessionState GameSession::GetState() const
+{
+	GameSessionState state;
+
+	state.loots_info_state = loots_info_;
+	state.map_id_ = map_id_;
+	state.player_id_ = player_id;
+
+	for(const auto& player : players_)
+		state.player_state_.push_back(player->GetState());
+
+	return state;
+}
+
+PlayerState Player::GetState()
+{
+	return PlayerState(name_, token_, id_, dog_);
+}
+
+void GameSession::DeleteRetiredPlayers(const std::vector<std::shared_ptr<Player>>& retired_players)
+{
+	for(auto it = retired_players.begin(); it != retired_players.end(); ++it)
+	{
+		auto findIt = std::find(std::begin(players_), std::end(players_), *it);
+		if(findIt != std::end(players_))
+		{
+			const auto new_end{std::remove(std::begin(players_), std::end(players_), *findIt)};
+			players_.erase(new_end, std::end(players_));
+		}
+	}
+}
+
 }

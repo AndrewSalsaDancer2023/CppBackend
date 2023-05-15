@@ -1,6 +1,9 @@
 #include "api_handler.h"
+#include "game_session.h"
 #include <set>
-
+#include <boost/url.hpp>
+#include "utility_functions.h"
+using namespace boost::urls;
 
 namespace http_handler {
 
@@ -9,6 +12,7 @@ const std::string players_endpoint = "/api/v1/game/players";
 const std::string state_endpoint = "/api/v1/game/state";
 const std::string action_endpoint = "/api/v1/game/player/action";
 const std::string tick_endpoint = "/api/v1/game/tick";
+const std::string records_endpoint = "/api/v1/game/records";
 
 const std::map<std::string, std::string> onlyPostMethodAllowedResp
 { {"code", "invalidMethod"},{"message", "Only POST method is expected"}};
@@ -77,46 +81,75 @@ StringResponse MakeStringResponse(http::status status, std::string_view body, un
 
 bool ApiHandler::IsApiRequest(const std::string& request)
 {
-	std::set<std::string> api_endpoints {game_endpoint, players_endpoint,  state_endpoint, action_endpoint, tick_endpoint};
+	std::string np_request = GetRequestStringWithoutParameters(request);
+	std::set<std::string> api_endpoints {game_endpoint, players_endpoint,  state_endpoint,
+										 action_endpoint, tick_endpoint, records_endpoint};
 
-	return api_endpoints.find(request) != api_endpoints.end();
+	return api_endpoints.find(np_request) != api_endpoints.end();
+}
+
+std::map<std::string, std::string> GetRequestParameters(const std::string& request)
+{
+	url_view u(request);
+	std::map<std::string, std::string> result;
+
+	for (auto param: u.params())
+	{
+	    result[param.key] = param.value;
+	}
+
+	return result;
 }
 
 StringResponse ApiHandler::HandleApiRequest(const std::string& request, http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
 {
 	StringResponse resp;
-	auto it_handler = resp_map_.find(request);
+	std::string np_request = GetRequestStringWithoutParameters(request);
+	auto it_handler = resp_map_.find(np_request);
 	if(it_handler != resp_map_.end())
-		return it_handler->second(method, auth_type, body, http_version, keep_alive);
-
+	{
+		auto parameters = GetRequestParameters(request);
+		return it_handler->second(method, auth_type, body, http_version, keep_alive, parameters);
+	}
 	return resp;
 }
 
 void ApiHandler::InitApiRequestHandlers()
 {
-	auto join_game_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+	auto join_game_handler = [this](http::verb method, std::string_view auth_type, const std::string& body,
+									unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params) -> StringResponse
 				 {
-			 	 	 return HandleJoinGameRequest(method, auth_type, body, http_version, keep_alive);
+			 	 	 return HandleJoinGameRequest(method, auth_type, body, http_version, keep_alive, params);
 				 };
 
-	auto get_players_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+	auto get_players_handler = [this](http::verb method, std::string_view auth_type, const std::string& body,
+									  unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params) -> StringResponse
 				 {
-			 	 	 return HandleGetPlayersRequest(method, auth_type, body, http_version, keep_alive);
+			 	 	 return HandleGetPlayersRequest(method, auth_type, body, http_version, keep_alive, params);
 				 };
 
-	auto get_state_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+	auto get_state_handler = [this](http::verb method, std::string_view auth_type, const std::string& body,
+									unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params) -> StringResponse
 				 {
-			 	 	 return HandleGetGameState(method, auth_type, body, http_version, keep_alive);
+			 	 	 return HandleGetGameState(method, auth_type, body, http_version, keep_alive, params);
 				 };
 
-	auto action_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+	auto action_handler = [this](http::verb method, std::string_view auth_type, const std::string& body,
+								 unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params) -> StringResponse
 				 {
-			 	 	  return HandlePlayerAction(method, auth_type, body, http_version, keep_alive);
+			 	 	  return HandlePlayerAction(method, auth_type, body, http_version, keep_alive, params);
 				 };
 
-	auto tick_handler = [this](http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive) -> StringResponse
+	auto tick_handler = [this](http::verb method, std::string_view auth_type, const std::string& body,
+							   unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params) -> StringResponse
 				{
-			 	  	return  HandleTickAction(method, auth_type, body, http_version, keep_alive);
+			 	  	return  HandleTickAction(method, auth_type, body, http_version, keep_alive, params);
+				};
+
+	auto records_handler = [this](http::verb method, std::string_view auth_type, const std::string& body,
+								  unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params) -> StringResponse
+				{
+			 	  	return HandleGetRecordsAction(method, auth_type, body, http_version, keep_alive, params);
 				};
 
 	resp_map_[game_endpoint] = join_game_handler;
@@ -124,9 +157,11 @@ void ApiHandler::InitApiRequestHandlers()
 	resp_map_[state_endpoint] = get_state_handler;
 	resp_map_[action_endpoint] = action_handler;
 	resp_map_[tick_endpoint] = tick_handler;
+	resp_map_[records_endpoint] = records_handler;
 }
 
-StringResponse ApiHandler::HandleJoinGameRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
+StringResponse ApiHandler::HandleJoinGameRequest(http::verb method, std::string_view auth_type, const std::string& body,
+												 unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params)
 {
 	StringResponse resp;
 	if(method == http::verb::post)
@@ -172,12 +207,16 @@ StringResponse ApiHandler::HandleAuthRequest(const std::string& body, unsigned h
     	try
     	{
     		auto [token, playerId] = game_.AddPlayer(respMap["mapId"], respMap["userName"]);
+
+    		auto player =  game_.GetPlayerWithAuthToken(token);
+    		player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
+
     		auto resp = MakeStringResponse(http::status::ok,
     									   json_serializer::MakeAuthResponce(token, playerId), http_version,
     									   keep_alive, ContentType::APPLICATION_JSON,
 										   {{http::field::cache_control, "no-cache"sv}});
 
-    		if((game_.GetNumPlayersInAllSessions() == 1) && ticker_)
+    		if(ticker_ && !ticker_->HasStarted())
     		{
     			ticker_->Start();
     		}
@@ -203,7 +242,9 @@ StringResponse ApiHandler::HandleAuthRequest(const std::string& body, unsigned h
     	}
     }
 
-StringResponse ApiHandler::HandleGetPlayersRequest(http::verb method, std::string_view auth_type, const std::string& body, unsigned http_version, bool keep_alive)
+StringResponse ApiHandler::HandleGetPlayersRequest(http::verb method, std::string_view auth_type,
+												  const std::string& body, unsigned http_version, bool keep_alive,
+												  const std::map<std::string, std::string>& params)
 {
    if((method != http::verb::get) && (method != http::verb::head))
     {
@@ -258,7 +299,7 @@ bool IsValidAuthToken(const std::string& token, size_t valid_size)
 }
 
 StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_view auth_type, const std::string& body,
-											  unsigned http_version, bool keep_alive)
+											  unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params)
 {
 	if((method != http::verb::get) && (method != http::verb::head))
 	{
@@ -304,7 +345,8 @@ StringResponse ApiHandler::HandleGetGameState(http::verb method, std::string_vie
 }
 
 StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_view auth_type,
-											  const std::string& body, unsigned http_version, bool keep_alive)
+											  const std::string& body, unsigned http_version,
+											  bool keep_alive, const std::map<std::string, std::string>& params)
 {
 	if(method != http::verb::post)
 	{
@@ -336,13 +378,12 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
     		return resp;
 		}
 
-	auto player =  game_.GetPlayerWithAuthToken(auth_token);
 	auto session =  game_.GetSessionWithAuthInfo(auth_token);
 	auto map = game_.FindMap(model::Map::Id(session->GetMap()));
 	auto map_speed = map->GetDogSpeed();
+	auto player =  game_.GetPlayerWithAuthToken(auth_token);
 
-	player->GetDog()->SpawnDogInMap(game_.GetSpawnInRandomPoint());
-	model::DogDirection dir =  json_loader::GetMoveDirection(body);
+	DogDirection dir =  json_loader::GetMoveDirection(body);
 	player->GetDog()->SetSpeed(dir, map_speed > 0.0 ? map_speed : game_.GetDefaultDogSpeed());
 
 	auto resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive, ContentType::APPLICATION_JSON,
@@ -351,7 +392,8 @@ StringResponse ApiHandler::HandlePlayerAction(http::verb method, std::string_vie
 }
 
 StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view auth_type,
-											const std::string& body, unsigned http_version, bool keep_alive)
+											const std::string& body, unsigned http_version,
+											bool keep_alive, const std::map<std::string, std::string>& params)
 {
 	 StringResponse resp;
 
@@ -376,8 +418,10 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 		 try{
 	  			int deltaTime = json_loader::ParseDeltaTimeRequest(body);
 
-	  			game_.MoveDogs(deltaTime);
 	  			game_.GenerateLoot(deltaTime);
+	  			game_.MoveDogs(deltaTime);
+	  			game_.SaveSessions(deltaTime);
+	  			game_.HandleRetiredPlayers();
 	  			resp = MakeStringResponse(http::status::ok, "{}", http_version, keep_alive,
 	  									  ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 	  		}
@@ -389,6 +433,57 @@ StringResponse ApiHandler::HandleTickAction(http::verb method, std::string_view 
 										  {{http::field::cache_control, "no-cache"sv}});
 	  		}
 	 }
+
+	 return resp;
+}
+
+std::pair<int, int> ParseParameters(const std::map<std::string, std::string>& params)
+{
+	 int start = 0;
+	 int max_items = MAX_DB_RECORDS;
+
+	 try
+	 {
+		 auto it  = params.find("start");
+		 if(it != params.end())
+			 start = std::stoi(it->second);
+
+		 it  = params.find("maxItems");
+		 if(it != params.end())
+	 	 	 max_items = std::stoi(it->second);
+
+	 }
+	 catch(std::exception& ex)
+	 {
+	 }
+	 return {start, max_items};
+}
+
+StringResponse ApiHandler::HandleGetRecordsAction(http::verb method, std::string_view auth_type,
+												  const std::string& body, unsigned http_version,
+												  bool keep_alive, const std::map<std::string, std::string>& params)
+{
+	 StringResponse resp;
+
+	 if((method != http::verb::get) && (method != http::verb::head))
+	 {
+		 resp = MakeStringResponse(http::status::method_not_allowed,
+	  	    			           json_serializer::MakeMappedResponce(invaliMethodResp),
+                                   http_version, keep_alive, ContentType::APPLICATION_JSON,
+								   {{http::field::cache_control, "no-cache"sv}});
+
+		 return resp;
+	 }
+	 auto [start, max_items] = ParseParameters(params);
+
+	 if(max_items > MAX_DB_RECORDS)
+		 resp = MakeStringResponse(http::status::bad_request,
+		            							    json_serializer::MakeMappedResponce(invalidNameResp),
+		            								http_version, keep_alive, ContentType::APPLICATION_JSON,
+													{{http::field::cache_control, "no-cache"sv}});
+	 else
+		 resp = MakeStringResponse(http::status::ok, json_serializer::MakeRecordsResponce(game_, start, max_items), http_version, keep_alive,
+	 	  									  ContentType::APPLICATION_JSON, {{http::field::cache_control, "no-cache"sv}});
 
 	 return resp;
 }

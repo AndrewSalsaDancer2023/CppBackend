@@ -1,8 +1,14 @@
 #include "model.h"
 #include "server_exceptions.h"
+#include "model_serialization.h"
+#include <algorithm>
+#include "utility_functions.h"
+#include <mutex>
 
 namespace model {
 using namespace std::literals;
+
+std::recursive_mutex db_update_mutex;
 
 void Map::AddOffice(Office office) {
     if (warehouse_id_to_index_.contains(office.GetId())) {
@@ -64,8 +70,7 @@ size_t Game::GetNumPlayersInAllSessions()
 
 
 Game::PlayerAuthInfo Game::AddPlayer(const std::string& map_id, const std::string& player_name) {
-    const Map* mapToAdd = FindMap(Map::Id(map_id));
-
+   const Map* mapToAdd = FindMap(Map::Id(map_id));
    if(player_name.empty()) 
 	    throw EmptyNameException();
 
@@ -170,6 +175,125 @@ void Game::SetLootParameters(double period, double probability)
 {
 	loot_period_ = period;
 	loot_probability_ = probability;
+}
+std::shared_ptr<GameSessionsStates> Game::GetGameSessionsStates() const
+{
+	std::shared_ptr<GameSessionsStates> res = std::make_shared<GameSessionsStates>();
+
+	for(const auto& session : sessions_)
+		res->states.push_back(session->GetState());
+
+	return res;
+}
+
+void Game::SaveSessions(int deltaTime)
+{
+	if(!save_period_)
+		return;
+	SerializeSessions(*this, deltaTime, save_period_);
+}
+
+void Game::RestoreSessions(const model::GameSessionsStates& sessions)
+{
+	std::for_each(sessions.states.begin(), sessions.states.end(), [this](auto& state){
+		auto [loot_period, loot_probability] = GetLootParameters();
+		auto session = std::make_shared<GameSession>(state.map_id_, loot_period, loot_probability);
+		session->SetPlayerId(state.player_id_);
+		session->SetLootsInfo(state.loots_info_state);
+		const Map* mapToAdd = FindMap(Map::Id(state.map_id_));
+
+		std::for_each(state.player_state_.begin(), state.player_state_.end(),
+					  [this, mapToAdd, &session](auto& pl_state){
+					   auto player = session->AddPlayer(pl_state.name_, const_cast<Map*>(mapToAdd),
+							   	   	   	   	   	   	    spawn_in_random_points_, default_bag_capacity_);
+					   player->SetToken(pl_state.token_);
+					   player->SetId(pl_state.id_);
+					   auto dog = player->GetDog();
+
+					   dog->SetDirection(pl_state.dog_direction_);
+					   dog->SetPositionOnMap(pl_state.dog_position_);
+					   dog->SetGatheredLoot(pl_state.gathered_loots_);
+					   dog->SetBagCapacity(pl_state.bag_capacity_);
+					   dog->SetScore(pl_state.score_);
+					   dog->SetPlayTime(pl_state.play_time_);
+					 });
+
+		sessions_.push_back(session);
+	});
+}
+
+void Game::HandleRetiredPlayers()
+{
+	std::lock_guard lg(db_update_mutex);
+	auto expired_players = FindExpiredPlayers();
+	if(expired_players.empty())
+		return;
+	SaveExpiredPlayers(expired_players);
+	DeleteExpiredPlayers(expired_players);
+}
+
+std::vector<RetiredSessionPlayers> Game::FindExpiredPlayers()
+{
+	std::vector<RetiredSessionPlayers> res;
+
+	for(auto itSession = sessions_.begin(); itSession != sessions_.end(); ++itSession)
+	{
+		RetiredSessionPlayers pairs;
+		const auto& players = (*itSession)->GetPlayers();
+		for(auto itPlayer = players.begin(); itPlayer != players.end(); ++itPlayer)
+		{
+				auto dog = (*itPlayer)->GetDog();
+				auto idle_time = dog->GetIdleTime();
+				if(idle_time >= dog_retierement_time_)
+				{
+					pairs.second.push_back(*itPlayer);
+				}
+		}
+		if(!pairs.second.empty())
+		{
+			pairs.first = *itSession;
+			res.push_back(pairs);
+		}
+	}
+	return res;
+}
+
+void Game::SaveExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players)
+{
+
+	for(auto itSesPlrs = expired_sessions_players.begin(); itSesPlrs != expired_sessions_players.end(); ++itSesPlrs)
+	{
+		for(auto itPlayer = itSesPlrs->second.begin(); itPlayer != itSesPlrs->second.end(); ++itPlayer)
+		{
+			auto dog = (*itPlayer)->GetDog();
+			SaveRetiredPlayer((*itPlayer)->GetName(), dog->GetScore(), dog->GetPlayTime());
+		}
+	}
+}
+
+void Game::DeleteExpiredPlayers(const std::vector<RetiredSessionPlayers>& expired_sessions_players)
+{
+	for(auto itSesPlrs = expired_sessions_players.begin(); itSesPlrs != expired_sessions_players.end(); ++itSesPlrs)
+	{
+		auto itSes = std::find_if(sessions_.begin(), sessions_.end(), [itSesPlrs](auto& elem){
+			return elem == itSesPlrs->first;
+		});
+
+		if(itSes == sessions_.end())
+			continue;
+
+		(*itSes)->DeleteRetiredPlayers(itSesPlrs->second);
+		if(!(*itSes)->GetNumPlayers())
+		{
+			const auto new_end{std::remove(std::begin(sessions_), std::end(sessions_), *itSes)};
+			sessions_.erase(new_end, std::end(sessions_));
+		}
+	}
+}
+
+std::vector<PlayerRecordItem> Game::GetRecords(int start, int max_items) const
+{
+	return GetRetiredPlayers(start, max_items);
 }
 
 }  // namespace model

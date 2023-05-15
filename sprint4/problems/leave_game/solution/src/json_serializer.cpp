@@ -6,6 +6,7 @@
 namespace json = boost::json;
 using namespace std::literals;
 
+const int MILLISECONDS_IN_SECOND = 1000;
 namespace json_serializer {
 
    std::string MakeErrorResponce(const std::string& codeMessage, const std::string& errorMessage)
@@ -101,7 +102,7 @@ namespace json_serializer {
 
 			dog_object["speed"] = speed_ar;
 
-			model::DogDirection dir = dog->GetDirection();
+			DogDirection dir = dog->GetDirection();
 			dog_object["dir"] = model::ConvertDogDirectionToString(dir);
 
 			dog_object["bag"] = SerializeDogBag(dog->GetGatheredLoot());
@@ -258,4 +259,19 @@ namespace json_serializer {
     	return json::serialize(root);
     }
 
+    std::string MakeRecordsResponce(const model::Game& game, int start, int max_items)
+    {
+    	json::array map_ar;
+        for( const auto& record: game.GetRecords(start, max_items))
+        {
+            json::object map_obj;
+
+            map_obj[ "name" ] = record.name;
+    	    map_obj[ "score" ] = record.score;
+    	    map_obj[ "playTime" ] = (double)record.playTime / MILLISECONDS_IN_SECOND;
+    	    map_ar.emplace_back(map_obj);
+        }
+
+        return json::serialize(map_ar);
+    }
 }  // namespace json_serializer

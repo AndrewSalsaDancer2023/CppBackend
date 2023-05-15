@@ -16,4 +16,5 @@ std::string GetMapListResponce(const model::Game& game);
 std::string GetMapContentResponce(const model::Game& game, const std::string& map_id);
 std::string GetPlayerInfoResponce(const std::vector<std::shared_ptr<model::Player>>& players_info);
 std::string GetPlayersDogInfoResponce(const std::vector<std::shared_ptr<model::Player>>& players, const std::vector<model::LootInfo>& loots);
+std::string MakeRecordsResponce(const model::Game& game, int start, int max_items);
 }  // namespace json_serializer

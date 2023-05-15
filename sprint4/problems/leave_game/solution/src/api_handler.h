@@ -44,11 +44,13 @@ public:
         InitApiRequestHandlers();
         if(game_.GetTickPeriod() > 0)
         {
-        ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(game.GetTickPeriod()),
-        								   [&game](std::chrono::milliseconds ticks)
+        	ticker_ = std::make_shared<Ticker>(strand_, std::chrono::milliseconds(game_.GetTickPeriod()),
+        								   [this](std::chrono::milliseconds ticks)
 										   {
-        										game.GenerateLoot(ticks.count());
-        										game.MoveDogs(ticks.count());
+        										game_.GenerateLoot(ticks.count());
+        										game_.MoveDogs(ticks.count());
+        										game_.SaveSessions(ticks.count());
+        										game_.HandleRetiredPlayers();
 										   });
         }
     }
@@ -63,20 +65,23 @@ public:
 private:
     void InitApiRequestHandlers();
     StringResponse HandleJoinGameRequest(http::verb method, std::string_view auth_type,
-    									 const std::string& body, unsigned http_version, bool keep_alive);
+    									 const std::string& body, unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params);
     StringResponse HandleAuthRequest(const std::string& body, unsigned http_version, bool keep_alive);
     StringResponse HandleGetPlayersRequest(http::verb method, std::string_view auth_type, const std::string& body,
-    									   unsigned http_version, bool keep_alive);
+    									   unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params);
     StringResponse HandleGetGameState(http::verb method, std::string_view auth_type, const std::string& body,
-    								  unsigned http_version, bool keep_alive);
+    								  unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params);
     StringResponse HandlePlayerAction(http::verb method, std::string_view auth_type, const std::string& body,
-    								  unsigned http_version, bool keep_alive);
+    								  unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params);
     StringResponse HandleTickAction(http::verb method, std::string_view auth_type, const std::string& body,
-    								unsigned http_version, bool keep_alive);
+    								unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params);
+
+    StringResponse HandleGetRecordsAction(http::verb method, std::string_view auth_type, const std::string& body,
+    								unsigned http_version, bool keep_alive, const std::map<std::string, std::string>& params);
 private:
     model::Game& game_;
     std::map<std::string,
-			std::function<StringResponse(http::verb, std::string_view, const std::string&, unsigned, bool)>> resp_map_;
+			std::function<StringResponse(http::verb, std::string_view, const std::string&, unsigned, bool, const std::map<std::string, std::string>&)>> resp_map_;
     std::shared_ptr<Ticker> ticker_;
     Strand& strand_;
 };    

@@ -2,7 +2,7 @@
 #include <fstream>
 #include <boost/json.hpp>
 #include "server_exceptions.h"
-
+#include <iostream>
 namespace json = boost::json;
 namespace json_loader {
 std::string x = "x";
@@ -35,6 +35,7 @@ std::string buildings_key = "buildings";
 std::string offices_key = "offices";
 std::string lootTypes = "lootTypes";
 std::string default_Dog_Speed = "defaultDogSpeed";
+std::string default_Dog_Retirement = "dogRetirementTime";
 std::string lootGeneratorConfig = "lootGeneratorConfig";
 std::string probability = "probability";
 std::string bagCapacityDefault = "defaultBagCapacity";
@@ -173,6 +174,12 @@ boost::json::string directionUp = "U";
         	game.SetDefaultDogSpeed(defaultDogSpeed);
         }
 
+        if(object_to_read.contains(default_Dog_Retirement))
+        {
+        	double dogRetirementTime = object_to_read.at(default_Dog_Retirement).as_double();
+        	game.SetDogRetirementTime(dogRetirementTime);
+        }
+
         if(object_to_read.contains(lootGeneratorConfig))
         {
         	auto loot = value.at(lootGeneratorConfig).as_object();
@@ -225,19 +232,19 @@ boost::json::string directionUp = "U";
         return result;
     }
  
-    model::DogDirection GetMoveDirection(const std::string& body)
+    DogDirection GetMoveDirection(const std::string& body)
     {
       	auto value = json::parse(body);
 
        	auto direction = value.at(move_key).as_string();
 
-       	const auto getDirection = [](const boost::json::string& direct) -> model::DogDirection
+       	const auto getDirection = [](const boost::json::string& direct) -> DogDirection
         				      {
-       								std::map<boost::json::string, model::DogDirection> dir{ {directionRight, model::DogDirection::EAST},
-       																						{directionLeft, model::DogDirection::WEST,},
-																							{directionDown, model::DogDirection::SOUTH},
-																							{directionUp, model::DogDirection::NORTH},
-																							{"", model::DogDirection::STOP}};
+       								std::map<boost::json::string, DogDirection> dir{ {directionRight, DogDirection::EAST},
+       																						{directionLeft, DogDirection::WEST,},
+																							{directionDown, DogDirection::SOUTH},
+																							{directionUp, DogDirection::NORTH},
+																							{"", DogDirection::STOP}};
        								auto itFind = dir.find(direct);
        								return itFind->second;
         				      };
@@ -264,4 +271,5 @@ boost::json::string directionUp = "U";
 	     }
 
     }
+
 }  // namespace json_loader
