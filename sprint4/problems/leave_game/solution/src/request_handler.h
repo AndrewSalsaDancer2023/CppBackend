@@ -3,7 +3,6 @@
 #include "model.h"
 #include "event_logger.h"
 #include "api_handler.h"
-
 namespace net = boost::asio;
 
 const std::string_view apiPrefix = "/api/";
@@ -33,6 +32,7 @@ public:
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>>&& req, Send&& send) {
     		std::string request = {req.target().begin(), req.target().end()};
+
     		if(api_handler_->IsApiRequest(request))
     	    {
     			return net::dispatch(strand_, [self = shared_from_this(), request, send, req]

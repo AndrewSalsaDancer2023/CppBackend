@@ -1,7 +1,8 @@
 #pragma once
 #include "model.h"
 #include <optional>
-#include <iostream>
+
+using namespace model;
 
 namespace collision_detector {
 	enum class ItemType;
@@ -14,29 +15,6 @@ struct Point;
 class Map;
 class Road;
 struct LootInfo;
-
-struct DogPosition
-{
-    DogPosition(double newx, double newy) : x{newx}, y{newy} {}
-    double x{0.0};
-    double y{0.0};
-};
-
-struct DogSpeed
-{
-    double vx{0.0};
-    double vy{0.0};
-};
-
-struct DogPos
-{
-    size_t current_road_index{0};
-    DogPosition curr_position{0.0, 0.0};
-    DogSpeed curr_speed{0.0, 0.0};
-};
-
-
-enum class DogDirection { NORTH, SOUTH, WEST, EAST, STOP };
 enum class RoadType{Parallel, Adjacent, Crossed};
 
 struct RoadInfo
@@ -46,7 +24,7 @@ struct RoadInfo
     RoadInfo(size_t index, RoadType rdType):road_index(index), road_type(rdType)  {}
 };
 
-std::string ConvertDogDirectionToString(model::DogDirection direction);
+std::string ConvertDogDirectionToString(DogDirection direction);
 
 class DogNavigator {
 public:
@@ -64,8 +42,9 @@ public:
         }
     }
 public:
-    void MoveDog(DogDirection direction, DogSpeed speed, int time);
-    model::DogPos GetDogPos() { return  dog_info_;}
+    void MoveDog(DogDirection direction, int time);
+    DogPos GetDogPosOnMap() { return  dog_info_;}
+    void SetDogPosOnMap(const DogPos& position) { dog_info_ = position;}
     DogPosition GetDogPosition() { return dog_info_.curr_position;}
     DogSpeed GetDogSpeed() { return dog_info_.curr_speed;}
     void SpawnDogInMap(bool spawn_in_random_point);
@@ -89,35 +68,45 @@ private:
 private:
     const std::vector<model::Road>& roads_;
     std::vector<std::vector<RoadInfo>> adjacent_roads_;
-    model::DogPos dog_info_;
+    DogPos dog_info_;
  };
 
 class Dog
 {
 public:
 	Dog(const model::Map *map, bool spawn_dog_in_random_point, unsigned defaultBagCapacity);
-	void SetSpeed(model::DogDirection dir, double speed);
+	void SetSpeed(DogDirection dir, double speed);
 	void SetDirection(const DogDirection& dir) { direction_ = dir;}
 	std::optional<collision_detector::Gatherer> Move(int deltaTime);
 	DogDirection GetDirection() {return direction_;}
 	DogPosition GetPosition() {return navigator_->GetDogPosition();}
+	void SetPositionOnMap(const DogPos& position) {navigator_->SetDogPosOnMap(position);}
+	DogPos GetPositionOnMap() {return navigator_->GetDogPosOnMap();}
 	DogSpeed GetSpeed() {return navigator_->GetDogSpeed();}
 	void SpawnDogInMap(bool spawn_in_random_point) {navigator_->SpawnDogInMap(spawn_in_random_point);}
 	const std::vector<model::LootInfo>& GetGatheredLoot() { return gathered_loots_;}
+	void SetGatheredLoot(const std::vector<model::LootInfo>& loots) { gathered_loots_ = loots;}
 	bool AddLoot(const model::LootInfo& loot);
 	void PassLootToOffice();
 	int GetScore() const noexcept { return score_;}
+	void SetScore(int score){ score_ = score;}
+	unsigned GetBagCapacity() { return bag_capacity_;}
+	void SetBagCapacity(unsigned capacity) {bag_capacity_ = capacity;}
+	unsigned int GetIdleTime() { return idle_time_; }
+	unsigned int GetPlayTime() { return play_time_;}
+	void SetPlayTime(unsigned int time) { play_time_ = time; }
 private:
 	DogDirection direction_;
-	DogSpeed speed_{0.0, 0.0};
 	const model::Map* map_;
-	std::shared_ptr<DogNavigator> navigator_;
-	unsigned bag_capacity_{};
+	std::shared_ptr<model::DogNavigator> navigator_;
 	std::vector<model::LootInfo> gathered_loots_;
-	int score_{};
+	unsigned bag_capacity_{};
+	int score_{0};
+	unsigned int idle_time_{0};
+	unsigned int play_time_{0};
 };
-
-
 }
+
+
 
 

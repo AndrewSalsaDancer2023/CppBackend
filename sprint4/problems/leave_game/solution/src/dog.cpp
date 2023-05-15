@@ -1,22 +1,21 @@
 #include "dog.h"
 #include <map>
-#include <exception>
 #include "server_exceptions.h"
 #include "utils.h"
 #include "collision_detector.h"
 
+constexpr double dS = 0.4;
+constexpr int millisescondsInSecond = 1000;
+constexpr double gathererWidth = 0.6;
+constexpr double epsilon = 0.0001;
 namespace model
 {
-    constexpr double dS = 0.4;
-    constexpr int millisescondsInSecond = 1000;
-    constexpr double gathererWidth = 0.6;
-
-    std::string ConvertDogDirectionToString(model::DogDirection direction)
+    std::string ConvertDogDirectionToString(DogDirection direction)
     {
-    	std::map<model::DogDirection, std::string> dir{ {model::DogDirection::EAST, "R"},
-    			   	   		   	   	   	   	   	   	   	{model::DogDirection::WEST, "L"},
-    													{model::DogDirection::SOUTH, "D"},
-    													{model::DogDirection::NORTH,"U"} };
+    	std::map<DogDirection, std::string> dir{ {DogDirection::EAST, "R"},
+    			   	   	   	   	   	   	   	     {DogDirection::WEST, "L"},
+    											 {DogDirection::SOUTH, "D"},
+    											 {DogDirection::NORTH,"U"} };
 
     	if(auto itFind = dir.find(direction); itFind != dir.end())
     		return itFind->second;
@@ -31,11 +30,11 @@ namespace model
 		navigator_ = std::make_shared<DogNavigator>(map_->GetRoads(), spawn_dog_in_random_point);
 	}
 
-	void Dog::SetSpeed(model::DogDirection dir, double speed)
+	void Dog::SetSpeed(DogDirection dir, double speed)
 	{
-		std::map<model::DogDirection, DogSpeed> velMap{{DogDirection::EAST, {speed, 0}}, {DogDirection::WEST, {-speed, 0}},
-													   {DogDirection::SOUTH, {0, speed}}, {DogDirection::NORTH, {0, -speed}},
-													   {DogDirection::STOP, {0, 0}}};
+		std::map<DogDirection, DogSpeed> velMap{{DogDirection::EAST, {speed, 0.0}}, {DogDirection::WEST, {-speed, 0.0}},
+												{DogDirection::SOUTH, {0.0, speed}}, {DogDirection::NORTH, {0.0, -speed}},
+												{DogDirection::STOP, {0.0, 0.0}}};
 
 		auto find_vel = velMap.find(dir);
 		if(find_vel == velMap.end())
@@ -43,29 +42,34 @@ namespace model
 
 		if(dir != DogDirection::STOP)
 			direction_ = dir;
-
-		speed_ = find_vel->second;
-		navigator_->SetDogSpeed(speed_);
+		idle_time_= 0;
+		navigator_->SetDogSpeed(find_vel->second);
 	}
 
 	std::optional<collision_detector::Gatherer> Dog::Move(int deltaTime)
 	{
 		std::optional<collision_detector::Gatherer> res;
-
-		if(direction_ == DogDirection::STOP)
+		play_time_ += deltaTime;
+		auto speed = navigator_->GetDogSpeed();
+		if((std::abs(speed.vx) <= epsilon) && (std::abs(speed.vy) <= epsilon))
+		{
+			idle_time_ += deltaTime;
 			return res;
+		}
+		else
+			idle_time_= 0;
 
 		DogPosition start =  GetPosition();
-		navigator_->MoveDog(direction_, speed_, deltaTime);
+		navigator_->MoveDog(direction_, deltaTime);
 
 		DogPosition end =  GetPosition();
 
-		if((std::abs(start.x-end.x) > std::numeric_limits<double>::epsilon()) ||
-		   (std::abs(start.y-end.y) > std::numeric_limits<double>::epsilon()))
+		if((std::abs(start.x-end.x) > epsilon) || (std::abs(start.y-end.y) > epsilon))
 		{
 			collision_detector::Gatherer gth({start.x, start.y}, {end.x, end.y}, gathererWidth);
 			res = gth;
 		}
+
 		return res;
 	}
 
@@ -437,14 +441,13 @@ namespace model
 	        dog_info_.curr_position = newPos;
 	    }
 
-
-	void DogNavigator::MoveDog(DogDirection direction, model::DogSpeed speed, int time)
+	void DogNavigator::MoveDog(DogDirection direction, int time)
 	{
-	    dog_info_.curr_speed = speed;
 	    const auto& road = roads_[dog_info_.current_road_index];
 	    double dt = static_cast<double>(time) / millisescondsInSecond;
 
-	    DogPosition newPos{dog_info_.curr_position.x + dt * speed.vx, dog_info_.curr_position.y + dt * speed.vy};
+	    DogPosition newPos{dog_info_.curr_position.x + dt * dog_info_.curr_speed.vx,
+	    				   dog_info_.curr_position.y + dt * dog_info_.curr_speed.vy};
 
 	    if(road.IsHorizontal())
 	    {
